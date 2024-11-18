@@ -30,7 +30,6 @@ from the project root folder.
 TASKS TO DO
 ('✔' means done, '.' means in progress)
 [✔] - Very basic printf that outputs to serial 
-    - (Hint) va_args
     - if the current char is '%' skip it and check the one after it
        - if its 'd' take an integer
        - if its 's' take a string
@@ -40,12 +39,6 @@ TASKS TO DO
 [ ] - Exception handling (i.e. just make an exception handler that prints when errors occur)
 [ ] - Find the "MMAP" tag in the `addr` and print out the areas of memory it tells you
 [ ] - Make a page allocator (Bitmap, Page list, whichever one you feel like)
-    - (Hint) GRUB IS WEIRD:
-       - As in, it doesn't mark the kernel as reserved memory. You'll have to do that yourself
-    - Using the MMAP go through each entry and if its available add it to your allocator
 [ ] - Implement paging using the allocator
-    - (Hint) Map available memory
-    - (Hint) Map the kernel itself
-    - (Hint) Map the framebuffer to some place you choose (or identity map it)
 [ ] - Load the new page table
 [ ] - REACH GUI MODE
