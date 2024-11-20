@@ -3,8 +3,6 @@ This is an open source operating system. It uses docker as it's build environmen
 Requirements to run:
 Docker and QEMU
 
-*NOT WORKING UNTIL NEXT PUSH*
-
 First run
 ```docker build buildenv -t mangos-buildenv```
 to get your docker build environment set up. Then open your docker like this:
