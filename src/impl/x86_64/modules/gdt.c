@@ -1,5 +1,6 @@
 #include "gdt.h"
 #include "print.h"
+#include "../../kernel/kernel.h"
 
 uint64_t create_gdt_entry(uint64_t base, uint64_t limit, uint64_t access, uint64_t flags) {
     uint64_t base1  = base & 0xFFFF;
@@ -45,9 +46,9 @@ void init_GDT() {
     GDT[2] = create_gdt_entry(0, 0, 0x92, 0); // kernel data
     GDT[3] = create_gdt_entry(0, 0, 0xFA, 0x2); // user code
     GDT[4] = create_gdt_entry(0, 0, 0xF2, 0); // user data
-    gdtr.size   = sizeof(GDT) - 1;
-    gdtr.offset = (uint64_t) GDT;
-    asm("lgdt (%0)" : : "r" (&gdtr));  
+    kernel.gdtr.size   = sizeof(GDT) - 1;
+    kernel.gdtr.offset = (uint64_t) GDT;
+    asm("lgdt (%0)" : : "r" (&kernel.gdtr));  
     asm volatile("push $0x08; \
               lea .reload_CS(%%rip), %%rax; \
               push %%rax; \
