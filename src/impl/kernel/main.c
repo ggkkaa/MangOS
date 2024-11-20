@@ -78,4 +78,7 @@ void kernel_main(uint32_t magic, uint32_t addr) {
     printf("This is an integer: %d\n", 69);
     printf("This is a pointer : %p\n", (void*)0xabcd);
     printf("This is a string  : %s\n", "Hello!");
+    printf("Initializing GDT\n");
+    init_GDT();
+    printf("GDT Initialized\n");
 }
