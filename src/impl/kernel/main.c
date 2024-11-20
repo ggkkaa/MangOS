@@ -2,6 +2,7 @@
 #include "strconvert.h"
 #include "multiboot2.h"
 #include "kernel.h"
+#include "utils.h"
 
 const char* tag_type_map[] = {
     [MULTIBOOT_TAG_ALIGN                ] = "MULTIBOOT_TAG_ALIGN",
@@ -78,7 +79,13 @@ void kernel_main(uint32_t magic, uint32_t addr) {
     printf("This is an integer: %d\n", 69);
     printf("This is a pointer : %p\n", (void*)0xabcd);
     printf("This is a string  : %s\n", "Hello!");
+    printf("Disabling interrupts.\n");
+    disable_interrupts();
     printf("Initializing GDT\n");
-    init_GDT();
+    init_GDT(); 
     printf("GDT Initialized\n");
+    printf("Initializing IDT\n");
+    init_IDT(); 
+    printf("IDT Initialized\n");
+    printf("%d\n", 0/0);
 }
