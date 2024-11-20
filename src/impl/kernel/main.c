@@ -1,6 +1,7 @@
 #include "print.h"
 #include "strconvert.h"
 #include "multiboot2.h"
+#include "kernel.h"
 
 const char* tag_type_map[] = {
     [MULTIBOOT_TAG_ALIGN                ] = "MULTIBOOT_TAG_ALIGN",
@@ -27,6 +28,8 @@ const char* tag_type_map[] = {
     [MULTIBOOT_TAG_TYPE_EFI64_IH        ] = "MULTIBOOT_TAG_TYPE_EFI64_IH",        
     [MULTIBOOT_TAG_TYPE_LOAD_BASE_ADDR  ] = "MULTIBOOT_TAG_TYPE_LOAD_BASE_ADDR",
 };
+
+Kernel kernel = {0};
 
 void kernel_main(uint32_t magic, uint32_t addr) {
     init_serial();

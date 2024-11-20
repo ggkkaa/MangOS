@@ -1,3 +1,6 @@
+#pragma once
+#include <stdint.h>
+
 struct GDTR {
     uint16_t size;
     uint64_t offset;

@@ -60,5 +60,4 @@ void init_GDT() {
               mov %%ax, %%fs; \
               mov %%ax, %%gs; \
               mov %%ax, %%ss" : : : "eax", "rax");
-    k_ok();
 }
