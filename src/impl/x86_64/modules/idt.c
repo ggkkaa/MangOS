@@ -32,7 +32,7 @@ extern SIMD_floating_point_exception();
 struct IDT_entry *IDT[256];
 
 void init_IDT() {
-    printf("Initializing the IDT!\n");
+    kllog("Initializing the IDT!", 1, 0);
     create_IDT_entry(0, &division_exception, 0x8E, IDT);
     create_IDT_entry(1, &debug_exception, 0x8E, IDT);
     create_IDT_entry(3, &breakpoint_exception, 0x8E, IDT);
@@ -51,9 +51,9 @@ void init_IDT() {
     create_IDT_entry(17, &alignment_check_exception, 0x8E, IDT);
     create_IDT_entry(18, &machine_check_exception, 0x8E, IDT);
     create_IDT_entry(19, &SIMD_floating_point_exception, 0x8E, IDT);
-    printf("IDT entries created!\n");
+    kllog("IDT entries created!", 1, 0);
     kernel.idtr.size = (sizeof(struct IDT_entry) * 256) - 1;
     kernel.idtr.offset = (uint64_t) IDT;
     asm("lidt %0" : : "m" (kernel.idtr));
-    printf("IDT has been created.\n");
+    kllog("IDT has been created.", 1, 0);
 }

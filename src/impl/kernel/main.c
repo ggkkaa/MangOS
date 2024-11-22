@@ -38,47 +38,44 @@ void kernel_main(uint32_t magic, uint32_t addr) {
     char buf[20];
     const char* hex_upper_digits = "0123456789ABCDEF";
 
-    printf("This is an integer: %d\n", 69);
-    printf("This is a pointer : %p\n", (void*)0xabcd);
-    printf("This is a string  : %s\n", "Hello!");
-    printf("Disabling interrupts.\n");
+    kllog("This is an integer: %d", 1, 0, 69);
+    kllog("This is a pointer : %p", 1, 0, (void*)0xabcd);
+    kllog("This is a string  : %s", 1, 0, "Hello!");
+    kllog("Disabling interrupts.", 1, 0);
     disable_interrupts();
-    printf("Initializing GDT\n");
+    kllog("Initializing GDT", 1, 0);
     init_GDT(); 
-    printf("GDT Initialized\n");
-    printf("Initializing IDT\n");
+    kllog("GDT Initialized", 1, 0);
+    kllog("Initializing IDT", 1, 0);
     init_IDT(); 
-    printf("IDT Initialized\n");
+    kllog("IDT Initialized", 1, 0);
 
-    printf("Reading multiboot address.");
+    kllog("Reading multiboot address.", 1, 0);
     struct multiboot_tag* tag = (struct multiboot_tag*)(addr+8);
     while(tag->type != MULTIBOOT_TAG_TYPE_END) {
-        serial_write_str("Found tag: "); 
+        kllog("Found tag: ", 0, 0); 
         if(tag->type < sizeof(tag_type_map)/sizeof(tag_type_map[0])) 
-            serial_write_str(tag_type_map[tag->type]);
+            kllog(tag_type_map[tag->type], 1, 200);
         else 
-            serial_write_str("Unknown");
-        serial_write_str("\r\n");
+            kllog("Unknown", 1, 1);
         if(tag->type == MULTIBOOT_TAG_TYPE_FRAMEBUFFER) { //Check the current tag
             struct multiboot_tag_framebuffer* tagfb = (struct multiboot_tag_framebuffer*) tag;
             uint32_t* fb = (uint32_t*)((long int)tagfb->common.framebuffer_addr);
 
             if(tagfb->common.framebuffer_type != MULTIBOOT_FRAMEBUFFER_TYPE_RGB) {
-                serial_write_str("The framebuffer isn't rgb");
+                kllog("The framebuffer isn't rgb", 1, 2);
                 for(;;) asm volatile("hlt");
             }
             if(tagfb->common.framebuffer_bpp != 32) {
-                serial_write_str("We have a different amount of bits per pixel than 32");
+                kllog("We have a different amount of bits per pixel than 32", 1, 2);
                 for(;;) asm volatile("hlt");
             }
             if(tagfb->common.framebuffer_addr == 0) {
-                serial_write_str("Addr is NULL");
+                kllog("Addr is NULL", 1, 2);
             }
             buf[uptrtoha_full(buf, sizeof(buf), tagfb->common.framebuffer_addr, hex_upper_digits)] = '\0';
-            serial_write_str("This is framebuffer_addr: ");
-            serial_write_str(buf);
-            serial_write_str("\r\n");
-            fb[0] = (uintptr_t)0xffffffff;
+            kllog("This is framebuffer_addr: %p", 1, 0, buf);
+            //fb[0] = (uintptr_t)0xffffffff;
         }
         tag = (struct multiboot_tag *) (((uint8_t*)tag) + ((tag->size + 7) & ~7));
     }

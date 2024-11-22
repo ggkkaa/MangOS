@@ -37,6 +37,7 @@ TASKS TO DO
 [✔] - Make the kernel load its own GDT
 [✔] - Implement an IDT
 [✔] - Exception handling (i.e. just make an exception handler that prints when errors occur)
+[✔] - Basic Log, uses ANSI escape codes for coloring errors differently from info.
 [ ] - Find the "MMAP" tag in the `addr` and print out the areas of memory it tells you
 [ ] - Make a page allocator (Bitmap, Page list, whichever one you feel like)
 [ ] - Implement paging using the allocator
