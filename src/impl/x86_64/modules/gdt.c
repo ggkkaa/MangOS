@@ -41,7 +41,7 @@ void create_system_segment_descriptor(uint64_t *GDT, uint8_t idx, uint64_t base,
 
 __attribute__((noinline))
 void init_GDT() {
-    printf("Initiating GDT... \n");
+    kprintf("Initiating GDT... \n");
     GDT[0] = create_gdt_entry(0, 0, 0, 0); // null
     GDT[1] = create_gdt_entry(0, 0, 0x9A, 0x2); // kernel code
     GDT[2] = create_gdt_entry(0, 0, 0x92, 0); // kernel data

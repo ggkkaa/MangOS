@@ -37,7 +37,20 @@ void kernel_main(uint32_t magic, uint32_t addr) {
 
     char buf[20];
     const char* hex_upper_digits = "0123456789ABCDEF";
-    
+
+    printf("This is an integer: %d\n", 69);
+    printf("This is a pointer : %p\n", (void*)0xabcd);
+    printf("This is a string  : %s\n", "Hello!");
+    printf("Disabling interrupts.\n");
+    disable_interrupts();
+    printf("Initializing GDT\n");
+    init_GDT(); 
+    printf("GDT Initialized\n");
+    printf("Initializing IDT\n");
+    init_IDT(); 
+    printf("IDT Initialized\n");
+
+    printf("Reading multiboot address.");
     struct multiboot_tag* tag = (struct multiboot_tag*)(addr+8);
     while(tag->type != MULTIBOOT_TAG_TYPE_END) {
         serial_write_str("Found tag: "); 
@@ -65,27 +78,9 @@ void kernel_main(uint32_t magic, uint32_t addr) {
             serial_write_str("This is framebuffer_addr: ");
             serial_write_str(buf);
             serial_write_str("\r\n");
-            //fb[0] = (uintptr_t)0xffffffff;
-//            for(int y = 0; y < tagfb->common.framebuffer_height; ++y) {
-//                for(int x = 0; x < tagfb->common.framebuffer_width; ++x) {
-//                    uint32_t* row = (uint32_t*)(((uint8_t*)fb)+tagfb->common.framebuffer_pitch*y);
-//                    row[x] = 0xff0000;
-//                }
-//            } 
+            fb[0] = (uintptr_t)0xffffffff;
         }
         tag = (struct multiboot_tag *) (((uint8_t*)tag) + ((tag->size + 7) & ~7));
     }
 
-    printf("This is an integer: %d\n", 69);
-    printf("This is a pointer : %p\n", (void*)0xabcd);
-    printf("This is a string  : %s\n", "Hello!");
-    printf("Disabling interrupts.\n");
-    disable_interrupts();
-    printf("Initializing GDT\n");
-    init_GDT(); 
-    printf("GDT Initialized\n");
-    printf("Initializing IDT\n");
-    init_IDT(); 
-    printf("IDT Initialized\n");
-    printf("%d\n", 0/0);
 }
