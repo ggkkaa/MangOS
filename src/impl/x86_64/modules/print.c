@@ -50,7 +50,7 @@ void serial_write_str(char* str) {
     }
 }
 
-void printf(const char* string, ...) {
+void kprintf(const char* string, ...) {
     va_list args;
     va_start(args, string);
     for (const char* ptr = string; *ptr != '\0'; ptr++) {
@@ -62,7 +62,7 @@ void printf(const char* string, ...) {
                 serial_write_str(int_to_str(va_arg(args, int)));
                 break;
             case 's':
-                serial_write_str(va_arg(args, int));
+                serial_write_str(va_arg(args, char*));
                 break;
             case 'p':
                 serial_write_str(ptr_to_str(va_arg(args, void*)));
@@ -77,3 +77,62 @@ void printf(const char* string, ...) {
     va_end(args);
 }
 
+void v_kprintf(const char* string, va_list args) {
+    for (const char* ptr = string; *ptr != '\0'; ptr++) {
+        if(*ptr == '%') {
+            ptr++;
+            switch (*ptr)
+            {
+            case 'd':
+                serial_write_str(int_to_str(va_arg(args, int)));
+                break;
+            case 's':
+                serial_write_str(va_arg(args, char*));
+                break;
+            case 'p':
+                serial_write_str(ptr_to_str(va_arg(args, void*)));
+                break;
+            default:
+                break;
+            }
+        } else {
+            serial_print_u8(*ptr);
+        }
+    }
+}
+
+void kllog(const char* string, uint8_t end_line, uint8_t log_type, ...) {
+    va_list args;
+    va_start(args, string);
+    switch (log_type)
+    {
+    case 0:
+        kprintf("[INFO]          ");
+        break;
+    case 1:
+        kprintf("\033[33m[WARNING]       ");
+        break;
+    case 2:
+        kprintf("\033[31m[ERROR]         ");
+        break;
+    default:
+        break;
+    }
+
+    v_kprintf(string, args);
+    kprintf("\033[0m");
+    
+    switch (end_line)
+    {
+    case 0:
+        break;
+    case 1:
+        kprintf("\n");
+        break;
+    default:
+        kprintf("\n");
+        break;
+    }
+
+    va_end(args);
+}

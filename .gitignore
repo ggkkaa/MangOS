@@ -1,6 +1,8 @@
-.vscode
+.vscode/*
 *.o
 dist/*
-dist
+dist/
 *.iso
 *.bin
+*.log
+targets/
