@@ -76,6 +76,26 @@ void kernel_main(uint32_t magic, uint32_t addr) {
             buf[uptrtoha_full(buf, sizeof(buf), tagfb->common.framebuffer_addr, hex_upper_digits)] = '\0';
             kllog("This is framebuffer_addr: %p", 1, 0, buf);
             //fb[0] = (uintptr_t)0xffffffff;
+        } else if(tag->type == MULTIBOOT_TAG_TYPE_MMAP) {
+            struct multiboot_tag_mmap* tagmmap = (struct multiboot_tag_mmap*) tag;
+            
+            struct multiboot_mmap_entry* mmap_entry = tagmmap->entries;
+            while ((uint8_t*) mmap_entry < (uint8_t*) tagmmap + tagmmap->size) {
+                uint64_t base_address = mmap_entry->addr;
+                uint64_t length = mmap_entry->len;
+                uint32_t type = mmap_entry->type;
+
+                kllog("Memory address at %p found", 1, 0, base_address);
+                kllog("Length of memory address is %d", 1, 0, length);
+
+                if (type == MULTIBOOT_MEMORY_AVAILABLE) {
+                    kllog("Type: Available", 1, 0);
+                } else {
+                    kllog("Type: Reserved/Other", 1, 0);
+                }
+
+                mmap_entry = (struct multiboot_mmap_entry*)((uint8_t*) mmap_entry + tagmmap->entry_size);
+            }
         }
         tag = (struct multiboot_tag *) (((uint8_t*)tag) + ((tag->size + 7) & ~7));
     }
