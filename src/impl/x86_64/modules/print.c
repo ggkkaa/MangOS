@@ -110,16 +110,17 @@ void kllog(const char* string, uint8_t end_line, uint8_t log_type, ...) {
         kprintf("[INFO]          ");
         break;
     case 1:
-        kprintf("[\033[33mWARNING\033[0m]       ");
+        kprintf("\033[33m[WARNING]       ");
         break;
     case 2:
-        kprintf("[\033[31mERROR\033[0m]         ");
+        kprintf("\033[31m[ERROR]         ");
         break;
     default:
         break;
     }
 
     v_kprintf(string, args);
+    kprintf("\033[0m");
     
     switch (end_line)
     {
