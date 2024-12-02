@@ -11,6 +11,8 @@ SECTIONS
 
     .text :
     {
+        kernel_start = .;
         *(.text)
+        kernel_end = .;
     }
 }
