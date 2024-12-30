@@ -1,8 +1,33 @@
+/* MIT License
+*
+* Copyright (c) 2024 ggkkaa
+*
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
+*
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+*
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
+
 #include "print.h"
 #include "strconvert.h"
 #include "multiboot2.h"
 #include "kernel.h"
 #include "utils.h"
+#include "./memory/linked_list.h"
+
 
 const char* tag_type_map[] = {
     [MULTIBOOT_TAG_ALIGN                ] = "MULTIBOOT_TAG_ALIGN",
@@ -35,6 +60,10 @@ Kernel kernel = {0};
 void kernel_main(uint32_t magic, uint32_t addr) {
     init_serial();
 
+    uintptr_t start = (uintptr_t)&kernel_start;
+    uintptr_t end = (uintptr_t)&kernel_end;
+    uintptr_t size = end - start;
+
     char buf[20];
     const char* hex_upper_digits = "0123456789ABCDEF";
 
@@ -49,6 +78,10 @@ void kernel_main(uint32_t magic, uint32_t addr) {
     kllog("Initializing IDT", 1, 0);
     init_IDT(); 
     kllog("IDT Initialized", 1, 0);
+
+    kllog("Kernel Start: %p", 1, 0, start);
+    kllog("Kernel End: %p", 1, 0, end);
+    kllog("Kernel Size: %d", 1, 0, size);
 
     kllog("Reading multiboot address.", 1, 0);
     struct multiboot_tag* tag = (struct multiboot_tag*)(addr+8);
@@ -75,29 +108,13 @@ void kernel_main(uint32_t magic, uint32_t addr) {
             }
             buf[uptrtoha_full(buf, sizeof(buf), tagfb->common.framebuffer_addr, hex_upper_digits)] = '\0';
             kllog("This is framebuffer_addr: %p", 1, 0, buf);
-            //fb[0] = (uintptr_t)0xffffffff;
+            fb[0] = (uintptr_t)0xffffffff;
         } else if(tag->type == MULTIBOOT_TAG_TYPE_MMAP) {
-            struct multiboot_tag_mmap* tagmmap = (struct multiboot_tag_mmap*) tag;
-            
-            struct multiboot_mmap_entry* mmap_entry = tagmmap->entries;
-            while ((uint8_t*) mmap_entry < (uint8_t*) tagmmap + tagmmap->size) {
-                uint64_t base_address = mmap_entry->addr;
-                uint64_t length = mmap_entry->len;
-                uint32_t type = mmap_entry->type;
-
-                kllog("Memory address at %p found", 1, 0, base_address);
-                kllog("Length of memory address is %d", 1, 0, length);
-
-                if (type == MULTIBOOT_MEMORY_AVAILABLE) {
-                    kllog("Type: Available", 1, 0);
-                } else {
-                    kllog("Type: Reserved/Other", 1, 0);
-                }
-
-                mmap_entry = (struct multiboot_mmap_entry*)((uint8_t*) mmap_entry + tagmmap->entry_size);
-            }
+            kllog("Initializing memory", 1, 0);
+            init_list(tag);
         }
         tag = (struct multiboot_tag *) (((uint8_t*)tag) + ((tag->size + 7) & ~7));
     }
+
 
 }
