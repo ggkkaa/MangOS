@@ -34,6 +34,7 @@ void init_list(struct multiboot_tag* tag) {
     kernel.available_pages = 0;
 
     struct mem_list *p_list;
+    list_init(&p_list);
     
     // Variable that stores the available memory
     uint64_t available_memory = 0;
@@ -57,11 +58,20 @@ void init_list(struct multiboot_tag* tag) {
             kllog("Type: Available", 1, 0);
 
             struct list_node* current_node = (struct list_node*)base_address;
-            list_init(current_node->list);
+
+            kllog("Check 1", 1, 0);
+
+            list_init(&current_node->list);
+
+            kllog("Check 2", 1, 0);
+
             current_node->pages = length / 4096;
 
-            list_append(current_node->list, p_list->list);
+            kllog("Check 3", 1, 0);
 
+            list_append(&current_node->list, &p_list->list);
+
+            kllog("Check 4", 1, 0);
             kllog("The memory setup node is at: %p", 1, 0, current_node);
             kllog("The memory setup node is %d pages big", 1, 0, current_node->pages);
 
@@ -78,16 +88,6 @@ void init_list(struct multiboot_tag* tag) {
         mmap_entry = (struct multiboot_mmap_entry*)(((uint8_t*) mmap_entry) + tagmmap->entry_size);
     }
 
-    kernel.memory_list = p_list
+    kernel.memory_list = p_list;
 }
 
-void* kmalloc_page(struct mem_list* list) {
-    struct list_node* node = list->list.next;
-    void* allocated = (void* node);
-    if (node->pages > 0)
-    {
-        struct list_node* new_node (struct list_node*)(((char*)node)+4096);
-        
-    }
-    
-}
