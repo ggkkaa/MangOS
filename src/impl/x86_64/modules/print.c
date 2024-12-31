@@ -73,7 +73,7 @@ void serial_write_str(char* str) {
     }
 }
 
-void kprintf(const char* string, ...) {
+void k_serial_printf(const char* string, ...) {
     va_list args;
     va_start(args, string);
     for (const char* ptr = string; *ptr != '\0'; ptr++) {
@@ -100,7 +100,7 @@ void kprintf(const char* string, ...) {
     va_end(args);
 }
 
-void v_kprintf(const char* string, va_list args) {
+void v_k_serial_printf(const char* string, va_list args) {
     for (const char* ptr = string; *ptr != '\0'; ptr++) {
         if(*ptr == '%') {
             ptr++;
@@ -130,30 +130,30 @@ void kllog(const char* string, uint8_t end_line, uint8_t log_type, ...) {
     switch (log_type)
     {
     case 0:
-        kprintf("[INFO]          ");
+        k_serial_printf("[INFO]          ");
         break;
     case 1:
-        kprintf("\033[33m[WARNING]       ");
+        k_serial_printf("\033[33m[WARNING]       ");
         break;
     case 2:
-        kprintf("\033[31m[ERROR]         ");
+        k_serial_printf("\033[31m[ERROR]         ");
         break;
     default:
         break;
     }
 
-    v_kprintf(string, args);
-    kprintf("\033[0m");
+    v_k_serial_printf(string, args);
+    k_serial_printf("\033[0m");
     
     switch (end_line)
     {
     case 0:
         break;
     case 1:
-        kprintf("\n");
+        k_serial_printf("\n");
         break;
     default:
-        kprintf("\n");
+        k_serial_printf("\n");
         break;
     }
 
