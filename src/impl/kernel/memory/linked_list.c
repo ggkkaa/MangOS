@@ -29,6 +29,16 @@
 // Global variable that stores the amount of nodes
 uint64_t node_amount;
 
+/*
+    Initializes the lined list for physical allocation.
+
+    First, it initializes the list and it reads the mmap tags.
+
+    Then, it prints them out and assigns a list node at the
+    beggining of each
+
+*/
+
 void init_list(struct multiboot_tag* tag) {
 
     kernel.available_pages = 0;
@@ -53,41 +63,40 @@ void init_list(struct multiboot_tag* tag) {
         kllog("Memory address at %p found", 1, 0, base_address);
         kllog("Length of memory address is %d", 1, 0, length);
         // If the address is available then mark it as empty, otherwise mark it as used.
-        if (type == MULTIBOOT_MEMORY_AVAILABLE) {
-            kllog("Type: Available", 1, 0);
+        if (type == MULTIBOOT_MEMORY_AVAILABLE) { //If the memory is available,
+            kllog("Type: Available", 1, 0); // Say that it's available
 
+            // set up a node for the free spot in memory,
             struct list_node* current_node = (struct list_node*)base_address;
-
-            kllog("Check 1", 1, 0);
 
             list_init(&current_node->list);
 
-            kllog("Check 2", 1, 0);
-
             current_node->pages = length / PAGE_SIZE;
-
-            kllog("Check 3", 1, 0);
 
             list_append(&current_node->list, &kernel.memory_list.list);
 
-            kllog("Check 4", 1, 0);
+            // print out the node that was set up
             kllog("The memory setup node is at: %p", 1, 0, current_node);
             kllog("The memory setup node is %d pages big", 1, 0, current_node->pages);
 
+            // And modify kernel values.
             available_memory += length;
             kernel.available_pages = available_memory / PAGE_SIZE;
             
             node_amount++;
-        } else {    
+        } else {    // Else, print out that the memory is not available
             kllog("Type: Reserved/Other", 1, 0);
         }
 
+        // Print out some information
         kllog("Available memory size: %d", 1, 0, available_memory);
         kllog("Available pages: %d", 1, 0, kernel.available_pages);
         mmap_entry = (struct multiboot_mmap_entry*)(((uint8_t*) mmap_entry) + tagmmap->entry_size);
     }
 
 }
+
+// Allocates a single physical page.
 
 void* alloc_phys_page() {
     struct list_node* node = (struct list_node*)kernel.memory_list.list.next;
@@ -101,6 +110,8 @@ void* alloc_phys_page() {
     list_remove(&node->list);
     return result;
 }
+
+// Allocates multiple physical pages
 
 void* alloc_phys_pages(size_t pages_count) {
     kllog("Allocating a page Lol 1", 1, 0);
@@ -126,6 +137,18 @@ void* alloc_phys_pages(size_t pages_count) {
 }
 
 #define TEST_ALLOC_SIZE 2
+
+/* Tests the physical allocator. Has two parts:
+
+    1: Allocates a single page, loops over it, 
+    and checks all the bytes for a pattern.
+
+    2: Allocates multiple pages(amount of which
+    is defined in TEST_ALLOC_SIZE), and checks 
+    all of them for a pattern.
+
+*/
+
 void allocator_test() {
     uint8_t* test_int = (uint8_t*)alloc_phys_pages(1);
     *test_int = 12;

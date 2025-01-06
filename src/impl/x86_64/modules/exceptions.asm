@@ -44,6 +44,11 @@ global floating_point_exception;
 global alignment_check_exception;
 global machine_check_exception;
 global SIMD_floating_point_exception;
+global virtualization_exception;
+global control_protection_exception;
+global hypervisor_injection_exception;
+global VMM_communication_exception;
+global security_exception;
 
 division_exception:
     push 0
@@ -127,6 +132,23 @@ SIMD_floating_point_exception:
     push 0
     push 19
     jmp base_handler
+
+virtualization_exception:
+    push 0
+    push 20
+
+control_protection_exception:
+    push 21
+
+hypervisor_injection_exception:
+    push 0
+    push 28
+
+VMM_communication_exception:
+    push 29
+
+security_exception:
+    push 30
 
 base_handler:
     push rax

@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include "utils.h"
 #include "exceptions.h"
+#include "print.h"
 
 void error_handler(IDTError error) {
     if(error.type == 14) {
@@ -26,5 +27,6 @@ void error_handler(IDTError error) {
         halt();
     }
     kllog("Error! Error code: %d", 1, 2, error.type);
+    kllog("It's at %p btw", 1, 2, error.rip);
     halt();
 }

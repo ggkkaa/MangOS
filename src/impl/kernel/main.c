@@ -30,7 +30,6 @@
 
 
 const char* tag_type_map[] = {
-    [MULTIBOOT_TAG_ALIGN                ] = "MULTIBOOT_TAG_ALIGN",
     [MULTIBOOT_TAG_TYPE_END             ] = "MULTIBOOT_TAG_TYPE_END",
     [MULTIBOOT_TAG_TYPE_CMDLINE         ] = "MULTIBOOT_TAG_TYPE_CMDLINE", 
     [MULTIBOOT_TAG_TYPE_BOOT_LOADER_NAME] = "MULTIBOOT_TAG_TYPE_BOOT_LOADER_NAME",
@@ -57,7 +56,7 @@ const char* tag_type_map[] = {
 
 Kernel kernel = {0};
 
-void kernel_main(uint32_t magic, uint32_t addr) {
+void kernel_main(uint32_t magic, uintptr_t addr) {
     init_serial();
 
     uintptr_t start = (uintptr_t)&kernel_start;
@@ -70,6 +69,7 @@ void kernel_main(uint32_t magic, uint32_t addr) {
     kllog("This is an integer: %d", 1, 0, 69);
     kllog("This is a pointer : %p", 1, 0, (void*)0xabcd);
     kllog("This is a string  : %s", 1, 0, "Hello!");
+    kllog("Multiple variable test %p, %d, %s, %p", 1, 0, (void*)0xabcd, 69, "Test", (void*)0xef12);
     kllog("Disabling interrupts.", 1, 0);
     disable_interrupts();
     kllog("Initializing GDT", 1, 0);
@@ -112,6 +112,7 @@ void kernel_main(uint32_t magic, uint32_t addr) {
         } else if(tag->type == MULTIBOOT_TAG_TYPE_MMAP) {
             kllog("Initializing memory", 1, 0);
             init_list(tag);
+            allocator_test();
         }
         tag = (struct multiboot_tag *) (((uint8_t*)tag) + ((tag->size + 7) & ~7));
     }

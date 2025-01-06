@@ -1,5 +1,6 @@
 #include "utils.h"
 
+
 void disable_interrupts(){
     asm("cli");
 }
@@ -11,7 +12,7 @@ void wait_for_interrupt() {
 }
 void halt() {
     disable_interrupts();
-    while (1 == 1)
+    while (true)
     {
         wait_for_interrupt();
     }

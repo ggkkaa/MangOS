@@ -7,7 +7,7 @@ extern char* kernel_end;
 
 typedef struct 
 {
-    struct mem_list* memory_list;
+    struct mem_list memory_list;
     struct GDTR gdtr;
     struct IDTR idtr;
     uint64_t available_pages;

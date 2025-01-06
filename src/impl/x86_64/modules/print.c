@@ -124,9 +124,9 @@ void v_k_serial_printf(const char* string, va_list args) {
     }
 }
 
-void kllog(const char* string, uint8_t end_line, uint8_t log_type, ...) {
+void kllog(const char* string, uint8_t end_line, uint32_t log_type, ...) {
     va_list args;
-    va_start(args, string);
+    va_start(args, log_type);
     switch (log_type)
     {
     case 0:

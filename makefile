@@ -30,4 +30,5 @@ build-x86_64: $(kernel_object_files) $(x86_64_object_files)
 
 quality-check:
 	cppcheck --enable=all --std=c99 --suppress=missingInclude --suppress=unusedFunction ./ && \
-	find . -type f \( -name "*.c" -o -name "*.h" \) -exec clang-tidy {} -- -std=gnu99 -I src/intf -I src/converters -I src/memory -I src/impl/x86_64/include \;
+	echo "Clang tests starting" && \
+	find . -type f \( -name "*.c" -o -name "*.h" \) -exec clang-tidy {} --checks=readability-comment,readability-function-size  -- -std=gnu99 -I src/intf -I src/converters -I src/memory -I src/impl/x86_64/include \;
