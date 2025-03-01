@@ -138,6 +138,9 @@ void kllog(const char* string, uint8_t end_line, uint32_t log_type, ...) {
     case 2:
         k_serial_printf("\033[31m[ERROR]         ");
         break;
+    case 3:
+        k_serial_printf("\033[1;31m[KERNEL PANIC]         ");
+        break;
     default:
         break;
     }
