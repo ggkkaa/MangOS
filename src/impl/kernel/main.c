@@ -1,11 +1,36 @@
+/* MIT License
+*
+* Copyright (c) 2024 ggkkaa
+*
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
+*
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+*
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
+
 #include "print.h"
 #include "strconvert.h"
 #include "multiboot2.h"
 #include "kernel.h"
 #include "utils.h"
+#include "./memory/linked_list.h"
+
+
 
 const char* tag_type_map[] = {
-    [MULTIBOOT_TAG_ALIGN                ] = "MULTIBOOT_TAG_ALIGN",
     [MULTIBOOT_TAG_TYPE_END             ] = "MULTIBOOT_TAG_TYPE_END",
     [MULTIBOOT_TAG_TYPE_CMDLINE         ] = "MULTIBOOT_TAG_TYPE_CMDLINE", 
     [MULTIBOOT_TAG_TYPE_BOOT_LOADER_NAME] = "MULTIBOOT_TAG_TYPE_BOOT_LOADER_NAME",
@@ -32,8 +57,12 @@ const char* tag_type_map[] = {
 
 Kernel kernel = {0};
 
-void kernel_main(uint32_t magic, uint32_t addr) {
+void kernel_main(uint32_t magic, uintptr_t addr) {
     init_serial();
+
+    char* start = (char*)&kernel_start;
+    char* end = (char*)&kernel_end;
+    uintptr_t size = end - start;
 
     char buf[20];
     const char* hex_upper_digits = "0123456789ABCDEF";
@@ -41,6 +70,7 @@ void kernel_main(uint32_t magic, uint32_t addr) {
     kllog("This is an integer: %d", 1, 0, 69);
     kllog("This is a pointer : %p", 1, 0, (void*)0xabcd);
     kllog("This is a string  : %s", 1, 0, "Hello!");
+    kllog("Multiple variable test %p, %d, %s, %p", 1, 0, (void*)0xabcd, 69, "Test", (void*)0xef12);
     kllog("Disabling interrupts.", 1, 0);
     disable_interrupts();
     kllog("Initializing GDT", 1, 0);
@@ -49,6 +79,12 @@ void kernel_main(uint32_t magic, uint32_t addr) {
     kllog("Initializing IDT", 1, 0);
     init_IDT(); 
     kllog("IDT Initialized", 1, 0);
+
+    kllog("Kernel Start: %p", 1, 0, start);
+        kernel.kernel_start = (char*)page_align_down((uintptr_t)start);
+    kllog("Kernel End: %p", 1, 0, end);
+        kernel.kernel_end = (char*)page_align_down((uintptr_t)end);
+    kllog("Kernel Size: %d", 1, 0, size);
 
     kllog("Reading multiboot address.", 1, 0);
     struct multiboot_tag* tag = (struct multiboot_tag*)(addr+8);
@@ -75,29 +111,14 @@ void kernel_main(uint32_t magic, uint32_t addr) {
             }
             buf[uptrtoha_full(buf, sizeof(buf), tagfb->common.framebuffer_addr, hex_upper_digits)] = '\0';
             kllog("This is framebuffer_addr: %p", 1, 0, buf);
-            //fb[0] = (uintptr_t)0xffffffff;
+            fb[0] = (uintptr_t)0xffffffff;
         } else if(tag->type == MULTIBOOT_TAG_TYPE_MMAP) {
-            struct multiboot_tag_mmap* tagmmap = (struct multiboot_tag_mmap*) tag;
-            
-            struct multiboot_mmap_entry* mmap_entry = tagmmap->entries;
-            while ((uint8_t*) mmap_entry < (uint8_t*) tagmmap + tagmmap->size) {
-                uint64_t base_address = mmap_entry->addr;
-                uint64_t length = mmap_entry->len;
-                uint32_t type = mmap_entry->type;
-
-                kllog("Memory address at %p found", 1, 0, base_address);
-                kllog("Length of memory address is %d", 1, 0, length);
-
-                if (type == MULTIBOOT_MEMORY_AVAILABLE) {
-                    kllog("Type: Available", 1, 0);
-                } else {
-                    kllog("Type: Reserved/Other", 1, 0);
-                }
-
-                mmap_entry = (struct multiboot_mmap_entry*)((uint8_t*) mmap_entry + tagmmap->entry_size);
-            }
+            kllog("Initializing memory", 1, 0);
+            init_list(tag);
+            allocator_test();
         }
         tag = (struct multiboot_tag *) (((uint8_t*)tag) + ((tag->size + 7) & ~7));
     }
+
 
 }

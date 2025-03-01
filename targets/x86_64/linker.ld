@@ -1,16 +1,19 @@
-ENTRY(start)
+    ENTRY(start)
 
-SECTIONS
-{
-    . = 1M;
-
-    .boot :
+    SECTIONS
     {
-        KEEP(*(.multiboot_header))
-    }
+        . = 1M;
 
-    .text :
-    {
-        *(.text)
+        kernel_start = .;
+
+        .boot :
+        {
+            KEEP(*(.multiboot_header))
+        }
+
+        .text :
+        {
+            *(.text)
+        }
+        kernel_end = .;
     }
-}

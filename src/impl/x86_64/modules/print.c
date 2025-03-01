@@ -1,3 +1,26 @@
+/* MIT License
+*
+* Copyright (c) 2024 ggkkaa
+*
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
+*
+* The above copyright notice and this permission notice shall be included in all
+* copies or substantial portions of the Software.
+*
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+* SOFTWARE.
+*/
+
 #include "print.h"
 #include "strconvert.h"
 
@@ -50,7 +73,7 @@ void serial_write_str(char* str) {
     }
 }
 
-void kprintf(const char* string, ...) {
+void k_serial_printf(const char* string, ...) {
     va_list args;
     va_start(args, string);
     for (const char* ptr = string; *ptr != '\0'; ptr++) {
@@ -77,7 +100,7 @@ void kprintf(const char* string, ...) {
     va_end(args);
 }
 
-void v_kprintf(const char* string, va_list args) {
+void v_k_serial_printf(const char* string, va_list args) {
     for (const char* ptr = string; *ptr != '\0'; ptr++) {
         if(*ptr == '%') {
             ptr++;
@@ -101,36 +124,39 @@ void v_kprintf(const char* string, va_list args) {
     }
 }
 
-void kllog(const char* string, uint8_t end_line, uint8_t log_type, ...) {
+void kllog(const char* string, uint8_t end_line, uint32_t log_type, ...) {
     va_list args;
-    va_start(args, string);
+    va_start(args, log_type);
     switch (log_type)
     {
     case 0:
-        kprintf("[INFO]          ");
+        k_serial_printf("[INFO]          ");
         break;
     case 1:
-        kprintf("\033[33m[WARNING]       ");
+        k_serial_printf("\033[33m[WARNING]       ");
         break;
     case 2:
-        kprintf("\033[31m[ERROR]         ");
+        k_serial_printf("\033[31m[ERROR]         ");
+        break;
+    case 3:
+        k_serial_printf("\033[1;31m[KERNEL PANIC]         ");
         break;
     default:
         break;
     }
 
-    v_kprintf(string, args);
-    kprintf("\033[0m");
+    v_k_serial_printf(string, args);
+    k_serial_printf("\033[0m");
     
     switch (end_line)
     {
     case 0:
         break;
     case 1:
-        kprintf("\n");
+        k_serial_printf("\n");
         break;
     default:
-        kprintf("\n");
+        k_serial_printf("\n");
         break;
     }
 

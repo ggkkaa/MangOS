@@ -1,5 +1,6 @@
 #include "utils.h"
 
+
 void disable_interrupts(){
     asm("cli");
 }
@@ -11,9 +12,17 @@ void wait_for_interrupt() {
 }
 void halt() {
     disable_interrupts();
-    while (1 == 1)
+    while (true)
     {
         wait_for_interrupt();
     }
     
+}
+
+size_t str_len(const char* str) {
+    size_t length = 0;
+    while (str[length] != '\0') {
+        length++;
+    }
+    return length;
 }
