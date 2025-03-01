@@ -29,6 +29,7 @@
 #include "./memory/linked_list.h"
 
 
+
 const char* tag_type_map[] = {
     [MULTIBOOT_TAG_TYPE_END             ] = "MULTIBOOT_TAG_TYPE_END",
     [MULTIBOOT_TAG_TYPE_CMDLINE         ] = "MULTIBOOT_TAG_TYPE_CMDLINE", 
@@ -59,8 +60,8 @@ Kernel kernel = {0};
 void kernel_main(uint32_t magic, uintptr_t addr) {
     init_serial();
 
-    uintptr_t start = (uintptr_t)&kernel_start;
-    uintptr_t end = (uintptr_t)&kernel_end;
+    char* start = (char*)&kernel_start;
+    char* end = (char*)&kernel_end;
     uintptr_t size = end - start;
 
     char buf[20];
@@ -80,7 +81,9 @@ void kernel_main(uint32_t magic, uintptr_t addr) {
     kllog("IDT Initialized", 1, 0);
 
     kllog("Kernel Start: %p", 1, 0, start);
+        kernel.kernel_start = (char*)page_align_down((uintptr_t)start);
     kllog("Kernel End: %p", 1, 0, end);
+        kernel.kernel_end = (char*)page_align_down((uintptr_t)end);
     kllog("Kernel Size: %d", 1, 0, size);
 
     kllog("Reading multiboot address.", 1, 0);

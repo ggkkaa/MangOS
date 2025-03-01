@@ -2,8 +2,8 @@
 #include "idt.h"
 #include "./memory/linked_list.h"
 
-extern char* kernel_start;
-extern char* kernel_end;
+extern char kernel_start;
+extern char kernel_end;
 
 typedef struct 
 {
@@ -11,6 +11,8 @@ typedef struct
     struct GDTR gdtr;
     struct IDTR idtr;
     uint64_t available_pages;
-
+    char* kernel_start;
+    char* kernel_end;
+    
 } Kernel;
 extern Kernel kernel;

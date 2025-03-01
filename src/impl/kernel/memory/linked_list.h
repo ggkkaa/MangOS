@@ -3,12 +3,14 @@
 #include <stddef.h>
 #include "list.h"
 #include "../multiboot2.h"
+#include "utils.h"
+#include "strconvert.h"
 #define PAGE_SIZE 4096
 
 struct list_node {
     struct list list;
     size_t pages;
-};
+} __attribute__ ((aligned (PAGE_SIZE)));
 
 
 struct mem_list {
