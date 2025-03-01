@@ -18,3 +18,11 @@ void halt() {
     }
     
 }
+
+size_t str_len(const char* str) {
+    size_t length = 0;
+    while (str[length] != '\0') {
+        length++;
+    }
+    return length;
+}
