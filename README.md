@@ -23,7 +23,7 @@ For x86_64(other architectures may come in the future)
 
 Then type `exit` to leave the build environment and run
 
-```qemu-system-x86_64 -cdrom dist/x86_64/kernel.iso```
+```qemu-system-x86_64 -cdrom dist/x86_64/kernel.iso -serial stdio -m 1024```
 
 from the project root folder.
 
