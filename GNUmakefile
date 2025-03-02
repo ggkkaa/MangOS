@@ -37,6 +37,8 @@ override CFLAGS += \
 
 override CPPFLAGS := \
 	-I src \
+	-I src/impl/kernel/modules/utilities/include \
+	-I src/impl/x86_64/include \
 	$(CPPFLAGS) \
 	-DLIMINE_API_REVISION=3 \
 	-MMD \
@@ -62,11 +64,11 @@ override OBJ := $(addprefix obj/,$(CFILES:.c=.c.o) $(ASFILES:.S=.S.o) $(NASMFILE
 override HEADER_DEPS := $(addprefix obj/,$(CFILES:.c=.c.d) $(ASFILES:.S=.S.d))
 
 .PHONY: all
-all: bin/$(OUTPUT)
+all: build/$(OUTPUT)
 
 -include $(HEADER_DEPS)
 
-bin/$(OUTPUT): GNUmakefile targets/x86_64/linker.ld $(OBJ)
+build/$(OUTPUT): GNUmakefile targets/x86_64/linker.ld $(OBJ)
 	@mkdir -p "$$(dirname $@)"
 	$(CC) $(CFLAGS) $(LDFLAGS) $(OBJ) -o $@
 

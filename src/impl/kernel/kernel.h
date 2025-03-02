@@ -1,5 +1,5 @@
-#include "gdt.h"
-#include "idt.h"
+#include "../x86_64/include/gdt.h"
+#include "../x86_64/include/idt.h"
 #include "./memory/linked_list.h"
 
 extern char kernel_start;
