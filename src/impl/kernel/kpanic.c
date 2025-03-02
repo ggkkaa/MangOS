@@ -1,6 +1,6 @@
 #include "print.h"
 #include "panic.h"
-#include "utils.h"
+#include "modules/utilities/include/utils.h"
 
 void kpanic(char* message) {
     kllog("The mango has rotten!", 1, 3);

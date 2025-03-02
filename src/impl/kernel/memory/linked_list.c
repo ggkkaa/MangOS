@@ -23,7 +23,7 @@
 
 #include "./linked_list.h"
 #include "../kernel.h"
-#include "../multiboot2.h"
+#include "multiboot/multiboot2.h"
 #include "print.h"
 #include "../panic.h"
 

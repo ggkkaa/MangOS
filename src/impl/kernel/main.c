@@ -23,7 +23,7 @@
 
 #include "print.h"
 #include "strconvert.h"
-#include "multiboot2.h"
+#include "multiboot/multiboot2.h"
 #include "kernel.h"
 #include "utils.h"
 #include "./memory/linked_list.h"
@@ -60,9 +60,9 @@ Kernel kernel = {0};
 void kernel_main(uint32_t magic, uintptr_t addr) {
     init_serial();
 
-    char* start = (char*)&kernel_start;
-    char* end = (char*)&kernel_end;
-    uintptr_t size = end - start;
+    //char* start = (char*)&kernel_start;
+    //char* end = (char*)&kernel_end;
+    //uintptr_t size = end - start;
 
     char buf[20];
     const char* hex_upper_digits = "0123456789ABCDEF";
@@ -79,12 +79,6 @@ void kernel_main(uint32_t magic, uintptr_t addr) {
     kllog("Initializing IDT", 1, 0);
     init_IDT(); 
     kllog("IDT Initialized", 1, 0);
-
-    kllog("Kernel Start: %p", 1, 0, start);
-        kernel.kernel_start = (char*)page_align_down((uintptr_t)start);
-    kllog("Kernel End: %p", 1, 0, end);
-        kernel.kernel_end = (char*)page_align_down((uintptr_t)end);
-    kllog("Kernel Size: %d", 1, 0, size);
 
     kllog("Reading multiboot address.", 1, 0);
     struct multiboot_tag* tag = (struct multiboot_tag*)(addr+8);
