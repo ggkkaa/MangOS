@@ -38,6 +38,13 @@ static volatile struct limine_framebuffer_request framebuffer_request = {
     .revision = 0
 };
 
+__attribute__((used, section(".limine_requests_start")))
+static volatile LIMINE_REQUESTS_START_MARKER;
+
+__attribute__((used, section(".limine_requests_end")))
+static volatile LIMINE_REQUESTS_END_MARKER;
+
+/*
 const char* tag_type_map[] = {
     [MULTIBOOT_TAG_TYPE_END             ] = "MULTIBOOT_TAG_TYPE_END",
     [MULTIBOOT_TAG_TYPE_CMDLINE         ] = "MULTIBOOT_TAG_TYPE_CMDLINE", 
@@ -61,16 +68,17 @@ const char* tag_type_map[] = {
     [MULTIBOOT_TAG_TYPE_EFI32_IH        ] = "MULTIBOOT_TAG_TYPE_EFI32_IH",        
     [MULTIBOOT_TAG_TYPE_EFI64_IH        ] = "MULTIBOOT_TAG_TYPE_EFI64_IH",        
     [MULTIBOOT_TAG_TYPE_LOAD_BASE_ADDR  ] = "MULTIBOOT_TAG_TYPE_LOAD_BASE_ADDR",
-};
+};*/
 
 Kernel kernel = {0};
 
 void kernel_main(uint32_t magic, uintptr_t addr) {
     init_serial();
 
-    //char* start = (char*)&kernel_start;
-    //char* end = (char*)&kernel_end;
-    //uintptr_t size = end - start;
+    if(LIMINE_BASE_REVISION_SUPPORTED == false) {
+        kpanic("This limine base revision is not supported.");
+        halt();
+    }
 
     char buf[20];
     const char* hex_upper_digits = "0123456789ABCDEF";
@@ -88,11 +96,23 @@ void kernel_main(uint32_t magic, uintptr_t addr) {
     init_IDT(); 
     kllog("IDT Initialized", 1, 0);
 
-    if(LIMINE_BASE_REVISION_SUPPORTED == false) {
-        kpanic("This limine base revision is not supported.");
+    kllog("Finding framebuffer...", 1, 0);
+
+    if (framebuffer_request.response == NULL || framebuffer_request.response->framebuffer_count < 1) {
+        kpanic("Error! Framebuffer not found!");
         halt();
     }
 
+    struct limine_framebuffer *framebuffer = framebuffer_request.response->framebuffers[0];
+
+    for (size_t i = 0; i < 100; i++) {
+        volatile uint32_t *fb_ptr = framebuffer->address;
+        fb_ptr[i * (framebuffer->pitch / 4) + i] = 0xffffff;
+    }
+
+    halt();
+
+    /*
     kllog("Reading multiboot address.", 1, 0);
     struct multiboot_tag* tag = (struct multiboot_tag*)(addr+8);
     while(tag->type != MULTIBOOT_TAG_TYPE_END) {
@@ -126,6 +146,7 @@ void kernel_main(uint32_t magic, uintptr_t addr) {
         }
         tag = (struct multiboot_tag *) (((uint8_t*)tag) + ((tag->size + 7) & ~7));
     }
+        */
 
 
 }
