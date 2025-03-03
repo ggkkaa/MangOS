@@ -96,7 +96,7 @@ iso: build/$(OUTPUT)
         -efi-boot-part \
 	--efi-boot-image \
 	--protective-msdos-label \
-        ./targets/x86_64/iso/ -o image.iso
+        ./targets/x86_64/iso/ -o dist/x86_64/MangOS.iso
 
 .PHONY: clean
 clean:
