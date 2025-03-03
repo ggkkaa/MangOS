@@ -22,13 +22,21 @@
 */
 
 #include "print.h"
+#include "panic.h"
 #include "strconvert.h"
-#include "multiboot/multiboot2.h"
 #include "kernel.h"
 #include "utils.h"
 #include "./memory/linked_list.h"
+#include "limine/limine.h"
 
+__attribute__((used, section(".limine_requests")))
+static volatile LIMINE_BASE_REVISION(3);
 
+__attribute__((used, section(".limine_requests")))
+static volatile struct limine_framebuffer_request framebuffer_request = {
+    .id = LIMINE_FRAMEBUFFER_REQUEST,
+    .revision = 0
+};
 
 const char* tag_type_map[] = {
     [MULTIBOOT_TAG_TYPE_END             ] = "MULTIBOOT_TAG_TYPE_END",
@@ -79,6 +87,11 @@ void kernel_main(uint32_t magic, uintptr_t addr) {
     kllog("Initializing IDT", 1, 0);
     init_IDT(); 
     kllog("IDT Initialized", 1, 0);
+
+    if(LIMINE_BASE_REVISION_SUPPORTED == false) {
+        kpanic("This limine base revision is not supported.");
+        halt();
+    }
 
     kllog("Reading multiboot address.", 1, 0);
     struct multiboot_tag* tag = (struct multiboot_tag*)(addr+8);
