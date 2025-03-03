@@ -5,3 +5,5 @@ dist/
 *.iso
 *.bin
 *.log
+obj/
+limine/
