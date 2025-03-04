@@ -104,49 +104,17 @@ void kernel_main(uint32_t magic, uintptr_t addr) {
     }
 
     struct limine_framebuffer *framebuffer = framebuffer_request.response->framebuffers[0];
+    volatile uint32_t *fb_ptr = framebuffer->address;
+
+    kllog("Framebuffer found!", 1, 0);
 
     for (size_t i = 0; i < 100; i++) {
-        volatile uint32_t *fb_ptr = framebuffer->address;
-        fb_ptr[i * (framebuffer->pitch / 4) + i] = 0xffffff;
+        fb_ptr[i * (framebuffer->pitch / 4) + i] = 0x3ae3fe;
     }
+    
 
     halt();
 
-    /*
-    kllog("Reading multiboot address.", 1, 0);
-    struct multiboot_tag* tag = (struct multiboot_tag*)(addr+8);
-    while(tag->type != MULTIBOOT_TAG_TYPE_END) {
-        kllog("Found tag: ", 0, 0); 
-        if(tag->type < sizeof(tag_type_map)/sizeof(tag_type_map[0])) 
-            kllog(tag_type_map[tag->type], 1, 200);
-        else 
-            kllog("Unknown", 1, 1);
-        if(tag->type == MULTIBOOT_TAG_TYPE_FRAMEBUFFER) { //Check the current tag
-            struct multiboot_tag_framebuffer* tagfb = (struct multiboot_tag_framebuffer*) tag;
-            uint32_t* fb = (uint32_t*)((long int)tagfb->common.framebuffer_addr);
-
-            if(tagfb->common.framebuffer_type != MULTIBOOT_FRAMEBUFFER_TYPE_RGB) {
-                kllog("The framebuffer isn't rgb", 1, 2);
-                for(;;) asm volatile("hlt");
-            }
-            if(tagfb->common.framebuffer_bpp != 32) {
-                kllog("We have a different amount of bits per pixel than 32", 1, 2);
-                for(;;) asm volatile("hlt");
-            }
-            if(tagfb->common.framebuffer_addr == 0) {
-                kllog("Addr is NULL", 1, 2);
-            }
-            buf[uptrtoha_full(buf, sizeof(buf), tagfb->common.framebuffer_addr, hex_upper_digits)] = '\0';
-            kllog("This is framebuffer_addr: %p", 1, 0, buf);
-            fb[0] = (uintptr_t)0xffffffff;
-        } else if(tag->type == MULTIBOOT_TAG_TYPE_MMAP) {
-            kllog("Initializing memory", 1, 0);
-            init_list(tag);
-            allocator_test();
-        }
-        tag = (struct multiboot_tag *) (((uint8_t*)tag) + ((tag->size + 7) & ~7));
-    }
-        */
 
 
 }
