@@ -23,7 +23,6 @@
 
 #include "./linked_list.h"
 #include "../kernel.h"
-#include "multiboot/multiboot2.h"
 #include "print.h"
 #include "../panic.h"
 
@@ -40,9 +39,10 @@ uint64_t node_amount = 0;
 
 */
 
-void init_list(struct multiboot_tag* tag) {
-
-    kernel.available_pages = 0;
+void init_list() {
+        kpanic("TODO: Implement init_list");
+        
+    /*kernel.available_pages = 0;
 
     list_init(&kernel.memory_list.list);
 
@@ -155,7 +155,7 @@ void init_list(struct multiboot_tag* tag) {
         for(struct list* list = kernel.memory_list.list.next; list != &kernel.memory_list.list; list = list->next) {
                 struct list_node* node = (struct list_node*)list;
                 kllog("List node at %p found.", 1, 0, node);
-        }
+        }*/
 }
 
 // Allocates a single physical page.

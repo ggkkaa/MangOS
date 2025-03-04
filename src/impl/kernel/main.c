@@ -22,14 +22,29 @@
 */
 
 #include "print.h"
+#include "panic.h"
 #include "strconvert.h"
-#include "multiboot/multiboot2.h"
 #include "kernel.h"
 #include "utils.h"
 #include "./memory/linked_list.h"
+#include "limine/limine.h"
 
+__attribute__((used, section(".limine_requests")))
+static volatile LIMINE_BASE_REVISION(3);
 
+__attribute__((used, section(".limine_requests")))
+static volatile struct limine_framebuffer_request framebuffer_request = {
+    .id = LIMINE_FRAMEBUFFER_REQUEST,
+    .revision = 0
+};
 
+__attribute__((used, section(".limine_requests_start")))
+static volatile LIMINE_REQUESTS_START_MARKER;
+
+__attribute__((used, section(".limine_requests_end")))
+static volatile LIMINE_REQUESTS_END_MARKER;
+
+/*
 const char* tag_type_map[] = {
     [MULTIBOOT_TAG_TYPE_END             ] = "MULTIBOOT_TAG_TYPE_END",
     [MULTIBOOT_TAG_TYPE_CMDLINE         ] = "MULTIBOOT_TAG_TYPE_CMDLINE", 
@@ -53,16 +68,17 @@ const char* tag_type_map[] = {
     [MULTIBOOT_TAG_TYPE_EFI32_IH        ] = "MULTIBOOT_TAG_TYPE_EFI32_IH",        
     [MULTIBOOT_TAG_TYPE_EFI64_IH        ] = "MULTIBOOT_TAG_TYPE_EFI64_IH",        
     [MULTIBOOT_TAG_TYPE_LOAD_BASE_ADDR  ] = "MULTIBOOT_TAG_TYPE_LOAD_BASE_ADDR",
-};
+};*/
 
 Kernel kernel = {0};
 
 void kernel_main(uint32_t magic, uintptr_t addr) {
     init_serial();
 
-    //char* start = (char*)&kernel_start;
-    //char* end = (char*)&kernel_end;
-    //uintptr_t size = end - start;
+    if(LIMINE_BASE_REVISION_SUPPORTED == false) {
+        kpanic("This limine base revision is not supported.");
+        halt();
+    }
 
     char buf[20];
     const char* hex_upper_digits = "0123456789ABCDEF";
@@ -80,39 +96,25 @@ void kernel_main(uint32_t magic, uintptr_t addr) {
     init_IDT(); 
     kllog("IDT Initialized", 1, 0);
 
-    kllog("Reading multiboot address.", 1, 0);
-    struct multiboot_tag* tag = (struct multiboot_tag*)(addr+8);
-    while(tag->type != MULTIBOOT_TAG_TYPE_END) {
-        kllog("Found tag: ", 0, 0); 
-        if(tag->type < sizeof(tag_type_map)/sizeof(tag_type_map[0])) 
-            kllog(tag_type_map[tag->type], 1, 200);
-        else 
-            kllog("Unknown", 1, 1);
-        if(tag->type == MULTIBOOT_TAG_TYPE_FRAMEBUFFER) { //Check the current tag
-            struct multiboot_tag_framebuffer* tagfb = (struct multiboot_tag_framebuffer*) tag;
-            uint32_t* fb = (uint32_t*)((long int)tagfb->common.framebuffer_addr);
+    kllog("Finding framebuffer...", 1, 0);
 
-            if(tagfb->common.framebuffer_type != MULTIBOOT_FRAMEBUFFER_TYPE_RGB) {
-                kllog("The framebuffer isn't rgb", 1, 2);
-                for(;;) asm volatile("hlt");
-            }
-            if(tagfb->common.framebuffer_bpp != 32) {
-                kllog("We have a different amount of bits per pixel than 32", 1, 2);
-                for(;;) asm volatile("hlt");
-            }
-            if(tagfb->common.framebuffer_addr == 0) {
-                kllog("Addr is NULL", 1, 2);
-            }
-            buf[uptrtoha_full(buf, sizeof(buf), tagfb->common.framebuffer_addr, hex_upper_digits)] = '\0';
-            kllog("This is framebuffer_addr: %p", 1, 0, buf);
-            fb[0] = (uintptr_t)0xffffffff;
-        } else if(tag->type == MULTIBOOT_TAG_TYPE_MMAP) {
-            kllog("Initializing memory", 1, 0);
-            init_list(tag);
-            allocator_test();
-        }
-        tag = (struct multiboot_tag *) (((uint8_t*)tag) + ((tag->size + 7) & ~7));
+    if (framebuffer_request.response == NULL || framebuffer_request.response->framebuffer_count < 1) {
+        kpanic("Error! Framebuffer not found!");
+        halt();
     }
+
+    struct limine_framebuffer *framebuffer = framebuffer_request.response->framebuffers[0];
+    volatile uint32_t *fb_ptr = framebuffer->address;
+
+    kllog("Framebuffer found!", 1, 0);
+
+    for (size_t i = 0; i < 100; i++) {
+        fb_ptr[i * (framebuffer->pitch / 4) + i] = 0x3ae3fe;
+    }
+    
+
+    halt();
+
 
 
 }
