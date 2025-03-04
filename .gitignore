@@ -7,3 +7,5 @@ dist/
 *.log
 obj/
 limine/
+build/
+build/*
