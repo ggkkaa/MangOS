@@ -1,5 +1,8 @@
 #define true 1
+
 #include <stddef.h>
+#include <stdint.h>
+
 #define page_align_up(p)   (((p) + (PAGE_SIZE-1)) / PAGE_SIZE * PAGE_SIZE)
 #define page_align_down(p) (((p)                ) / PAGE_SIZE * PAGE_SIZE)
 
