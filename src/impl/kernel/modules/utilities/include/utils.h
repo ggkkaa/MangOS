@@ -8,3 +8,7 @@ void enable_interrupts();
 void wait_for_interrupt();
 void halt();
 size_t str_len(const char* str);
+void *memcpy(void *dest, const void *src, size_t size);
+void *memset(void *pointer, int val, size_t size);
+void *memmove(void *dest, const void *src, size_t size);
+int memcmp(const void *pointer1, const void *pointer2, size_t size);
