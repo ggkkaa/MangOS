@@ -32,10 +32,6 @@ volatile struct limine_memmap_request limine_memmap_request = {
         .id = LIMINE_MEMMAP_REQUEST,
         .revision = 0,
 };
-
-// Global variable that stores the amount of nodes
-uint64_t node_amount = 0;
-
 /*
     Initializes the lined list for physical allocation.
 
@@ -96,18 +92,32 @@ void init_list(uintptr_t hhdm_offset) {
                         // And modify kernel values.
                         available_memory += entry->length;
                         kernel.available_pages = available_memory / PAGE_SIZE;
-                        
-                        node_amount++;
                 }
         }
         
-        kllog("Finished setting up the list.", 1, 0);
+        if(kernel.memory_list.list.next == &kernel.memory_list.list)
+        {
+                kpanic("The list is empty.");
+        }
+
+        kllog("The main node is at %p", 1, 0, &kernel.memory_list.list);
+
+        for(struct list* list = kernel.memory_list.list.next; list != &kernel.memory_list.list; list = list->next) {
+                kllog("This node is at %p", 1, 0, list);
+            }
+
+        kllog("Finished setting up the list. Now starting test.", 1, 0);
+
+        allocator_test();
 }
 
 // Allocates a single physical page.
 
 void* alloc_phys_page() {
     struct list_node* node = (struct list_node*)kernel.memory_list.list.next;
+
+    k_serial_printf("BRO JUST PRINT PLEASE");
+
     void* result = (void*)node;
     if(node->pages > 0) {
         struct list_node* new_node = (struct list_node*)((char*)node + PAGE_SIZE);
@@ -122,7 +132,10 @@ void* alloc_phys_page() {
 // Allocates multiple physical pages
 
 void* alloc_phys_pages(size_t pages_count) {
-    if(pages_count == 1) {return alloc_phys_page;}
+        if(pages_count == 1) {
+                void* result = alloc_phys_page();
+                return result;
+        }
     for(struct list* list = kernel.memory_list.list.next; list != &kernel.memory_list.list; list = list->next) {
         struct list_node* node = (struct list_node*)list;
         void* result = node;
@@ -155,8 +168,8 @@ void* alloc_phys_pages(size_t pages_count) {
 */
 
 void allocator_test() {
-    bool success = true;
-    uint8_t* test_int = (uint8_t*)alloc_phys_pages(1);
+        bool success = true;
+        uint8_t* test_int = (uint8_t*)alloc_phys_pages(1);
         kllog("Address of the test int is %p", 1, 0, test_int);
     *test_int = 69;
     
@@ -174,25 +187,11 @@ void allocator_test() {
     kllog("Pattern filled.", 1, 0);
 
     for (size_t i = 0; i < PAGE_SIZE; i++) {
-        //kllog("At offset %d,", 1, 0, i);
         if (test_int[i] != (uint16_t)(i & 0xFF)) {
             success = false;
-            //kllog("Memory test failed at byte %p: Expected %d, got %d", 1, 4, i + test_int, (uint16_t)(i & 0xFF), test_int[i]);
+            kllog("Memory test failed at byte %p: Expected %d, got %d", 1, 4, i + test_int, (uint16_t)(i & 0xFF), test_int[i]);
             break;
         }
-            // Buffer sizes for borders
-            //int addr_len = 23;
-            //int value_len = str_len(int_to_str(test_int[i]));
-            //int content_length = addr_len + value_len;
-
-            
-            //for (int j = 0; j < content_length; j++) k_serial_printf("_");
-
-            
-            //k_serial_printf("\n|Byte %p|%d|\n", &test_int[i], test_int[i]);
-
-            //for (int j = 0; j < content_length; j++) k_serial_printf("-");
-            //k_serial_printf("\n");
     }
     if(success == false) {
         kllog("Error! Memory allocation test failed!!!", 1, 2);
@@ -201,6 +200,7 @@ void allocator_test() {
         kllog("Single page physical allocation test finished.", 1, 0);
     }
 
+    halt();
 
     //kllog("Multi page physical allocation test starting...", 1, 0);
 
