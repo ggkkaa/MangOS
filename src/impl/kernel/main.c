@@ -38,6 +38,12 @@ static volatile struct limine_framebuffer_request framebuffer_request = {
     .revision = 0
 };
 
+__attribute__((used, section(".limine_requests")))
+volatile struct limine_hhdm_request limine_hhdm_request = {
+        .id = LIMINE_HHDM_REQUEST,
+        .revision = 0,
+};
+
 __attribute__((used, section(".limine_requests_start")))
 static volatile LIMINE_REQUESTS_START_MARKER;
 
@@ -94,7 +100,11 @@ void kernel_main(uint32_t magic, uintptr_t addr) {
     kllog("GDT Initialized", 1, 0);
     kllog("Initializing IDT", 1, 0);
     init_IDT(); 
-    kllog("IDT Initialized", 1, 0);
+        kllog("IDT Initialized", 1, 0); 
+
+        uintptr_t hhdm = limine_hhdm_request.response->offset;
+
+        kllog("hhdm offset: %p", 1, 0, hhdm);
 
     kllog("Finding framebuffer...", 1, 0);
 
@@ -112,6 +122,8 @@ void kernel_main(uint32_t magic, uintptr_t addr) {
         fb_ptr[i * (framebuffer->pitch / 4) + i] = 0x3ae3fe;
     }
     
+
+    init_list(hhdm);
 
     halt();
 

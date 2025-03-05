@@ -25,10 +25,13 @@
 #include "../kernel.h"
 #include "print.h"
 #include "../panic.h"
+#include "limine/limine.h"
 
-// Global variable that stores the amount of nodes
-uint64_t node_amount = 0;
-
+__attribute__((used, section(".limine_requests")))
+volatile struct limine_memmap_request limine_memmap_request = {
+        .id = LIMINE_MEMMAP_REQUEST,
+        .revision = 0,
+};
 /*
     Initializes the lined list for physical allocation.
 
@@ -39,129 +42,82 @@ uint64_t node_amount = 0;
 
 */
 
-void init_list() {
-        kpanic("TODO: Implement init_list");
+static const char* limine_memmap_str[] = {
+        "Usable",
+        "Reserved",
+        "Acpi Reclaimable",
+        "Acpi NVS",
+        "Bad Memory",
+        "Bootloader Reclaimable",
+        "Kernel and Modules",
+        "Framebuffer"
+};
+
+void init_list(uintptr_t hhdm_offset) {
         
-    /*kernel.available_pages = 0;
+        kllog("hhdm offset: %p", 1, 0, hhdm_offset);
 
-    list_init(&kernel.memory_list.list);
+        kernel.available_pages = 0;
+        list_init(&kernel.memory_list.list);
+        uint64_t available_memory = 0;
 
-    uint64_t available_memory = 0;
+        for (size_t i = 0; i < limine_memmap_request.response->entry_count; ++i)
+        {
+                struct limine_memmap_entry* entry = limine_memmap_request.response->entries[i];
 
-    struct multiboot_tag_mmap* tagmmap = (struct multiboot_tag_mmap*) tag;
-    
-    struct multiboot_mmap_entry* mmap_entry = tagmmap->entries;
-    
-    // Iterate over the mmap entry to print debugging information and set up a basic linked list
-    while (((uint8_t*) mmap_entry) < ((uint8_t*) tagmmap) + tagmmap->size) {
-        uint64_t base_address = mmap_entry->addr;
-        uint64_t length = mmap_entry->len;
-        uint32_t type = mmap_entry->type;
+                kllog("%d st memory entry at %p", 1, 0, i, (void*)entry->base);
 
-        kllog("Memory address at %p found", 1, 0, base_address);
-        kllog("Length of memory address is %d", 1, 0, length);
+                kllog("%d pages.", 1, 0, (size_t)(entry->length / PAGE_SIZE));
 
-        //kllog("Marking areas %p to %p as unavailable...", 1, 0, kernel.kernel_start, kernel.kernel_end);
+                kllog("Type: %s", 1, 0, limine_memmap_str[entry->type]);
+                
+                
 
-
-        // If the address is available then mark it as empty, otherwise mark it as used.
-        if (type == MULTIBOOT_MEMORY_AVAILABLE) { //If the memory is available,
-            kllog("Type: Available", 1, 0); // Say that it's available
-
-            if ((base_address >= (uintptr_t)kernel.kernel_start) && (base_address <= (uintptr_t)kernel.kernel_end)) {
-
-                uint64_t k_before = base_address - (uintptr_t)kernel.kernel_start;
-                uint64_t k_after = (uintptr_t)kernel.kernel_end - base_address;
-
-                kllog("There are %d bytes before the kernel starts.", 1, 0, k_before);
-                kllog("There are %d bytes after the kernel ends.", 1, 0, k_after);
-
-                if (k_before > 0)
-                {
+                if(entry->type == LIMINE_MEMMAP_USABLE) {
                         // set up a node for the free spot in memory,
-                        struct list_node* current_node = (struct list_node*)base_address;
+                        struct list_node *virtual_node_loc = (struct list_node*)(entry->base + hhdm_offset);
+
+                        struct list_node *current_node = virtual_node_loc;
 
                         list_init(&current_node->list);
-
-                        current_node->pages = k_before / PAGE_SIZE;
-
+                        
+                        current_node->pages = entry->length / PAGE_SIZE;
+                        
                         list_append(&current_node->list, &kernel.memory_list.list);
-
+                        
                         // print out the node that was set up
                         kllog("The memory setup node is at: %p", 1, 0, current_node);
                         kllog("The memory setup node is %d pages big", 1, 0, current_node->pages);
-
-                        // And modify kernel values.
-                        available_memory += length;
-                        kernel.available_pages = available_memory / PAGE_SIZE;
                         
-                        node_amount++;
-                }
-
-                if (k_after > 0)
-                {
-                        // set up a node for the free spot in memory,
-                        struct list_node* current_node = (struct list_node*)kernel.kernel_end;
-
-                        list_init(&current_node->list);
-
-                        current_node->pages = k_after / PAGE_SIZE;
-
-                        list_append(&current_node->list, &kernel.memory_list.list);
-
-                        // print out the node that was set up
-                        kllog("The memory setup node is at: %p", 1, 0, current_node);
-                        kllog("The memory setup node is %d pages big", 1, 0, current_node->pages);
-
                         // And modify kernel values.
-                        available_memory += length;
+                        available_memory += entry->length;
                         kernel.available_pages = available_memory / PAGE_SIZE;
-                        
-                        node_amount++;
                 }
-                
-            } else {
-
-                // set up a node for the free spot in memory,
-                struct list_node* current_node = (struct list_node*)base_address;
-
-                list_init(&current_node->list);
-
-                current_node->pages = length / PAGE_SIZE;
-
-                list_append(&current_node->list, &kernel.memory_list.list);
-
-                // print out the node that was set up
-                kllog("The memory setup node is at: %p", 1, 0, current_node);
-                kllog("The memory setup node is %d pages big", 1, 0, current_node->pages);
-
-                // And modify kernel values.
-                available_memory += length;
-                kernel.available_pages = available_memory / PAGE_SIZE;
-                
-                node_amount++;
-            }
-        } else {    // Else, say that the memory is not available
-            kllog("Type: Reserved/Other", 1, 0);
+        }
+        
+        if(kernel.memory_list.list.next == &kernel.memory_list.list)
+        {
+                kpanic("The list is empty.");
         }
 
-        // Print out some information
-        kllog("Available memory size: %d", 1, 0, available_memory);
-        kllog("Available pages: %d", 1, 0, kernel.available_pages);
-        mmap_entry = (struct multiboot_mmap_entry*)(((uint8_t*) mmap_entry) + tagmmap->entry_size);
-    }
-        kllog("Node Amount: %d", 1, 0, node_amount);
+        kllog("The main node is at %p", 1, 0, &kernel.memory_list.list);
 
         for(struct list* list = kernel.memory_list.list.next; list != &kernel.memory_list.list; list = list->next) {
-                struct list_node* node = (struct list_node*)list;
-                kllog("List node at %p found.", 1, 0, node);
-        }*/
+                kllog("This node is at %p", 1, 0, list);
+            }
+
+        kllog("Finished setting up the list. Now starting test.", 1, 0);
+
+        allocator_test();
 }
 
 // Allocates a single physical page.
 
 void* alloc_phys_page() {
     struct list_node* node = (struct list_node*)kernel.memory_list.list.next;
+
+    k_serial_printf("BRO JUST PRINT PLEASE");
+
     void* result = (void*)node;
     if(node->pages > 0) {
         struct list_node* new_node = (struct list_node*)((char*)node + PAGE_SIZE);
@@ -176,7 +132,10 @@ void* alloc_phys_page() {
 // Allocates multiple physical pages
 
 void* alloc_phys_pages(size_t pages_count) {
-    if(pages_count == 1) {return alloc_phys_page;}
+        if(pages_count == 1) {
+                void* result = alloc_phys_page();
+                return result;
+        }
     for(struct list* list = kernel.memory_list.list.next; list != &kernel.memory_list.list; list = list->next) {
         struct list_node* node = (struct list_node*)list;
         void* result = node;
@@ -209,8 +168,8 @@ void* alloc_phys_pages(size_t pages_count) {
 */
 
 void allocator_test() {
-    bool success = true;
-    uint8_t* test_int = (uint8_t*)alloc_phys_pages(1);
+        bool success = true;
+        uint8_t* test_int = (uint8_t*)alloc_phys_pages(1);
         kllog("Address of the test int is %p", 1, 0, test_int);
     *test_int = 69;
     
@@ -228,25 +187,11 @@ void allocator_test() {
     kllog("Pattern filled.", 1, 0);
 
     for (size_t i = 0; i < PAGE_SIZE; i++) {
-        //kllog("At offset %d,", 1, 0, i);
         if (test_int[i] != (uint16_t)(i & 0xFF)) {
             success = false;
-            //kllog("Memory test failed at byte %p: Expected %d, got %d", 1, 4, i + test_int, (uint16_t)(i & 0xFF), test_int[i]);
+            kllog("Memory test failed at byte %p: Expected %d, got %d", 1, 4, i + test_int, (uint16_t)(i & 0xFF), test_int[i]);
             break;
         }
-            // Buffer sizes for borders
-            //int addr_len = 23;
-            //int value_len = str_len(int_to_str(test_int[i]));
-            //int content_length = addr_len + value_len;
-
-            
-            //for (int j = 0; j < content_length; j++) k_serial_printf("_");
-
-            
-            //k_serial_printf("\n|Byte %p|%d|\n", &test_int[i], test_int[i]);
-
-            //for (int j = 0; j < content_length; j++) k_serial_printf("-");
-            //k_serial_printf("\n");
     }
     if(success == false) {
         kllog("Error! Memory allocation test failed!!!", 1, 2);
@@ -255,16 +200,11 @@ void allocator_test() {
         kllog("Single page physical allocation test finished.", 1, 0);
     }
 
+    kllog("Multi page physical allocation test starting...", 1, 0);
 
-    //kllog("Multi page physical allocation test starting...", 1, 0);
+    test_int = (uint16_t*)alloc_phys_pages(TEST_ALLOC_SIZE);
 
-    //test_int = (uint16_t*)alloc_phys_pages(TEST_ALLOC_SIZE);
-
-    /*for (size_t i = 0; i < TEST_ALLOC_SIZE; i++) {
-        if ((uintptr_t)test_int[i] % PAGE_SIZE != 0) {
-            kllog("Page is not aligned!", 1, 1);
-            return;
-        }
+    for (size_t i = 0; i < TEST_ALLOC_SIZE; i++) {
         test_int[i] = (uint16_t)(i & 0xFF);
         
     }
@@ -275,7 +215,7 @@ void allocator_test() {
             kllog("Multi-page test failed you're dumb", 1, 2);
             return;
         }
-    }*/
+    }
 
 
     kllog("test passed!", 1, 0);
