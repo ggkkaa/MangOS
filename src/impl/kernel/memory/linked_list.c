@@ -200,17 +200,11 @@ void allocator_test() {
         kllog("Single page physical allocation test finished.", 1, 0);
     }
 
-    halt();
+    kllog("Multi page physical allocation test starting...", 1, 0);
 
-    //kllog("Multi page physical allocation test starting...", 1, 0);
+    test_int = (uint16_t*)alloc_phys_pages(TEST_ALLOC_SIZE);
 
-    //test_int = (uint16_t*)alloc_phys_pages(TEST_ALLOC_SIZE);
-
-    /*for (size_t i = 0; i < TEST_ALLOC_SIZE; i++) {
-        if ((uintptr_t)test_int[i] % PAGE_SIZE != 0) {
-            kllog("Page is not aligned!", 1, 1);
-            return;
-        }
+    for (size_t i = 0; i < TEST_ALLOC_SIZE; i++) {
         test_int[i] = (uint16_t)(i & 0xFF);
         
     }
@@ -221,7 +215,7 @@ void allocator_test() {
             kllog("Multi-page test failed you're dumb", 1, 2);
             return;
         }
-    }*/
+    }
 
 
     kllog("test passed!", 1, 0);
