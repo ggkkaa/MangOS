@@ -116,8 +116,6 @@ void init_list(uintptr_t hhdm_offset) {
 void* alloc_phys_page() {
     struct list_node* node = (struct list_node*)kernel.memory_list.list.next;
 
-    k_serial_printf("BRO JUST PRINT PLEASE");
-
     void* result = (void*)node;
     if(node->pages > 0) {
         struct list_node* new_node = (struct list_node*)((char*)node + PAGE_SIZE);
@@ -181,7 +179,7 @@ void allocator_test() {
         }
         test_int[i] = (uint8_t)(i & 0xFF);
         
-        kllog("Write %d. %d Written.", 1, 0, i, test_int[i]);
+        //kllog("Write %d. %d Written.", 1, 0, i, test_int[i]);
     }
 
     kllog("Pattern filled.", 1, 0);

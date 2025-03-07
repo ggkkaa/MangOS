@@ -20,8 +20,3 @@ void* alloc_phys_pages(size_t pages_count);
 void free_phys_pages(void* address, size_t pages_count);
 void init_list(uintptr_t hhdm_offset);
 void allocator_test();
-
-
-/*
-    pointer to sth or sth idk??
-*/
