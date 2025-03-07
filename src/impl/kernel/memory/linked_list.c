@@ -202,7 +202,7 @@ void allocator_test() {
 
     kllog("Multi page physical allocation test starting...", 1, 0);
 
-    test_int = (uint16_t*)alloc_phys_pages(TEST_ALLOC_SIZE);
+    test_int = (uint8_t*)alloc_phys_pages(TEST_ALLOC_SIZE);
 
     for (size_t i = 0; i < TEST_ALLOC_SIZE; i++) {
         test_int[i] = (uint16_t)(i & 0xFF);
