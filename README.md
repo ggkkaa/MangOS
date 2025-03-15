@@ -122,7 +122,7 @@ flash it onto a USB. Then, enter your BIOS and set the USB as your boot drive.
 For QEMU, the only supported virtual machine for now, run
 
 ```sh
-qemu-system-x86_64 -cdrom dist/x86_64/kernel.iso -serial stdio -m 1024
+qemu-system-x86_64 -cdrom dist/x86_64/MangOS.iso -serial stdio -m 1024
 ```
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
