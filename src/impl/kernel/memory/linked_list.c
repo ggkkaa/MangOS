@@ -38,7 +38,7 @@ volatile struct limine_memmap_request limine_memmap_request = {
     First, it initializes the list and it reads the mmap tags.
 
     Then, it prints them out and assigns a list node at the
-    beggining of each
+    beginning of each
 
 */
 
