@@ -28,6 +28,7 @@
 #include "utils.h"
 #include "./memory/linked_list.h"
 #include "limine/limine.h"
+#include "page.h"
 
 __attribute__((used, section(".limine_requests")))
 static volatile LIMINE_BASE_REVISION(3);
@@ -124,6 +125,7 @@ void kernel_main(uint32_t magic, uintptr_t addr) {
     
 
     init_list(hhdm);
+    init_paging();
 
     halt();
 

@@ -4,6 +4,8 @@
 #include <stddef.h>
 #include <stdarg.h>
 
+#define print_test(num)   kllog('Test %d', 1, 0, num)
+
 
 void init_serial();
 void serial_print_u8(uint8_t c);

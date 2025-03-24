@@ -61,20 +61,47 @@ void init_list(uintptr_t hhdm_offset) {
         list_init(&kernel.memory_list.list);
         uint64_t available_memory = 0;
 
+        kernel.memmap_request = limine_memmap_request;
+
+        kllog("entries array is at: %p", 1, 0, kernel.memmap_request.response->entries);
+        for (size_t i = 0; i < kernel.memmap_request.response->entry_count; ++i) {
+            kllog("entry[%d] = %p", 1, 0, i, kernel.memmap_request.response->entries[i]);
+        }
+        
+
         for (size_t i = 0; i < limine_memmap_request.response->entry_count; ++i)
         {
                 struct limine_memmap_entry* entry = limine_memmap_request.response->entries[i];
+
+                kllog("The entry header is at %p", 1, 0, entry);
 
                 kllog("%d st memory entry at %p", 1, 0, i, (void*)entry->base);
 
                 kllog("%d pages.", 1, 0, (size_t)(entry->length / PAGE_SIZE));
 
                 kllog("Type: %s", 1, 0, limine_memmap_str[entry->type]);
-                
-                
+
+
+
+                if (entry->base > 4ULL * 1024 * 1024 * 1024) {
+                    kllog("The entry is above 4 GB", 1, 0);
+                    continue;
+                }
+            
 
                 if(entry->type == LIMINE_MEMMAP_USABLE) {
                         // set up a node for the free spot in memory,
+
+                        if(entry->base >= PHYS_MEM_RESERVE_SIZE) {
+                            kllog("Skipping entry, base out of range %p", 1, 0, entry->base);
+                            continue;
+                        }
+                        
+                        if (entry->base + entry->length > PHYS_MEM_RESERVE_SIZE) {
+                            kllog("Clamping entry. Entry was too long.", 1, 0);
+                            entry->length = PHYS_MEM_RESERVE_SIZE - entry->base;
+                        }
+
                         struct list_node *virtual_node_loc = (struct list_node*)(entry->base + hhdm_offset);
 
                         struct list_node *current_node = virtual_node_loc;
