@@ -54,7 +54,6 @@ static const char* limine_memmap_str[] = {
 };
 
 void init_list(uintptr_t hhdm_offset) {
-        
         kllog("hhdm offset: %p", 1, 0, hhdm_offset);
 
         kernel.available_pages = 0;
@@ -119,6 +118,9 @@ void init_list(uintptr_t hhdm_offset) {
                         // And modify kernel values.
                         available_memory += entry->length;
                         kernel.available_pages = available_memory / PAGE_SIZE;
+                } else if(entry->type == LIMINE_MEMMAP_EXECUTABLE_AND_MODULES) {
+                    struct list_node *virtual_node_loc = (struct list_node*)(entry->base + hhdm_offset);
+                    kllog("init_list: Kernel entry at %p", 1, 0, virtual_node_loc);
                 }
         }
         
@@ -151,12 +153,18 @@ void* alloc_phys_page() {
         list_append(&new_node->list, &node->list);
     }
     list_remove(&node->list);
+    kllog("alloc: phys page is at %p", 1, 0, result);
     return result;
 }
 
 // Allocates multiple physical pages
 
 void* alloc_phys_pages(size_t pages_count) {
+    size_t size = 0;
+    for (struct list* i = kernel.memory_list.list.next; i != &kernel.memory_list.list; i = i->next) {
+        kllog("entry[%d] = %p", 1, 0, size, i);
+        size++;
+    }
         if(pages_count == 1) {
                 void* result = alloc_phys_page();
                 return result;
@@ -170,13 +178,22 @@ void* alloc_phys_pages(size_t pages_count) {
             list_init(&new_node->list);
             list_append(&new_node->list, &node->list);
             list_remove(&node->list);
+            kllog("alloc: phys page is at %p", 1, 0, result);
             return result;
         } else if(node->pages) {
             list_remove(list);
+            kllog("alloc: phys page is at %p", 1, 0, result);
             return result;
         }
     }
     return NULL;
+}
+
+void free_phys_pages(void* page, size_t count) {
+    struct list_node* node = (struct list_node*)page;
+    list_init(&node->list);
+    node->pages = count - 1;
+    list_append(&node->list, &kernel.memory_list.list);
 }
 
 #define TEST_ALLOC_SIZE 2
@@ -218,6 +235,9 @@ void allocator_test() {
             break;
         }
     }
+
+    free_phys_pages(test_int, 1);
+
     if(success == false) {
         kllog("Error! Memory allocation test failed!!!", 1, 2);
         kpanic("Single Page Allocation Failed");
@@ -242,6 +262,7 @@ void allocator_test() {
         }
     }
 
+    free_phys_pages(test_int, TEST_ALLOC_SIZE);
 
     kllog("test passed!", 1, 0);
 
