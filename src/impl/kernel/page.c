@@ -42,19 +42,21 @@ void bootmap_physical_memory() {
                 //case LIMINE_MEMMAP_EXECUTABLE_AND_MODULES:
                 //case LIMINE_MEMMAP_BOOTLOADER_RECLAIMABLE:
                 //case LIMINE_MEMMAP_ACPI_RECLAIMABLE:
+                kllog("Mapping %d pages from %p to %p.", 1, 0, pages, page_align_down(entry->base | KERNEL_MEMORY_MASK), page_align_down(entry->base | KERNEL_MEMORY_MASK) + pages*PAGE_SIZE);
                         if(!page_mmap(kernel.pml4, page_align_down(entry->base), page_align_down(entry->base | KERNEL_MEMORY_MASK), pages, flags)) {
                                 kpanic("Could not map memory.");
                         }
-                        kllog("Mapping %d pages.", 1, 0, pages);
                         break;
                 default:
                         kllog("Skipping %d pages.", 1, 0, pages);
                 }
+
+                kllog("The next 3 memory entries are %p, %p, and %p", 1, 0, kernel.memmap_request.response->entries[i],kernel.memmap_request.response->entries[i+1],kernel.memmap_request.response->entries[i+2]);
         }
 }
 
 bool page_mmap(page_t pml4_address, uintptr_t physical_addr, uintptr_t virtual_addr, size_t page_count, pageflags_t flags) {
-        kllog("Mapping some pages", 1, 0);
+        kllog("Mapping pages from %p to %p", 1, 0, virtual_addr, virtual_addr + page_count*PAGE_SIZE);
         virtual_addr &= ~PAGE_MASK;
         physical_addr &= ~KERNEL_MEMORY_MASK;
 
@@ -67,7 +69,7 @@ bool page_mmap(page_t pml4_address, uintptr_t physical_addr, uintptr_t virtual_a
         {
                 page_t pml3_address = NULL;
                 if(pml4_address[pml4] == 0) {
-                        pml4_address[pml4] = (uintptr_t)alloc_phys_pages(1);
+                        pml4_address[pml4] = (uintptr_t)((long long unsigned int)alloc_phys_pages(1) | KERNEL_MEMORY_MASK);
                         if(!pml4_address[pml4]) return false;
                         pml3_address = (page_t)(pml4_address[pml4] | KERNEL_MEMORY_MASK);
                         memset(pml3_address, 0, PAGE_SIZE);
@@ -80,7 +82,7 @@ bool page_mmap(page_t pml4_address, uintptr_t physical_addr, uintptr_t virtual_a
                 {
                         page_t pml2_address = NULL;
                         if(pml3_address[pml3] == 0) {
-                                pml3_address[pml3] = (uintptr_t)alloc_phys_pages(1);
+                                pml3_address[pml3] = (uintptr_t)((long long unsigned int)alloc_phys_pages(1) | KERNEL_MEMORY_MASK);
                                 if(!pml3_address[pml3]) return false;
                                 pml2_address = (page_t)(pml3_address[pml3] | KERNEL_MEMORY_MASK);
                                 memset(pml2_address, 0, PAGE_SIZE);
@@ -93,7 +95,7 @@ bool page_mmap(page_t pml4_address, uintptr_t physical_addr, uintptr_t virtual_a
                         {
                                 page_t pml1_address = NULL;
                                 if(pml2_address[pml2] == 0) {
-                                        pml2_address[pml2] = (uintptr_t)alloc_phys_pages(1);
+                                        pml2_address[pml2] = (uintptr_t)((long long unsigned int)alloc_phys_pages(1) | KERNEL_MEMORY_MASK);
                                         if(!pml2_address[pml2]) return false;
                                         pml1_address = (page_t)(pml2_address[pml2] | KERNEL_MEMORY_MASK);
                                         memset(pml1_address, 0, PAGE_SIZE);

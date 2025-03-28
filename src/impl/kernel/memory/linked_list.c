@@ -32,6 +32,9 @@ volatile struct limine_memmap_request limine_memmap_request = {
         .id = LIMINE_MEMMAP_REQUEST,
         .revision = 0,
 };
+
+extern struct limine_hhdm_request limine_hhdm_request;
+
 /*
     Initializes the lined list for physical allocation.
 
@@ -88,18 +91,7 @@ void init_list(uintptr_t hhdm_offset) {
                 }
             
 
-                if(entry->type == LIMINE_MEMMAP_USABLE) {
-                        // set up a node for the free spot in memory,
-
-                        if(entry->base >= PHYS_MEM_RESERVE_SIZE) {
-                            kllog("Skipping entry, base out of range %p", 1, 0, entry->base);
-                            continue;
-                        }
-                        
-                        if (entry->base + entry->length > PHYS_MEM_RESERVE_SIZE) {
-                            kllog("Clamping entry. Entry was too long.", 1, 0);
-                            entry->length = PHYS_MEM_RESERVE_SIZE - entry->base;
-                        }
+                if(entry->type == LIMINE_MEMMAP_USABLE && entry->base < PHYS_MEM_RESERVE_SIZE) {
 
                         struct list_node *virtual_node_loc = (struct list_node*)(entry->base + hhdm_offset);
 
@@ -134,6 +126,12 @@ void init_list(uintptr_t hhdm_offset) {
         for(struct list* list = kernel.memory_list.list.next; list != &kernel.memory_list.list; list = list->next) {
                 kllog("This node is at %p", 1, 0, list);
             }
+            size_t size = 0;
+
+            for (struct list* i = kernel.memory_list.list.next; i != &kernel.memory_list.list; i = i->next) {
+                kllog("entry[%d] = %p", 1, 0, size, i);
+                size++;
+            }
 
         kllog("Finished setting up the list. Now starting test.", 1, 0);
 
@@ -154,17 +152,17 @@ void* alloc_phys_page() {
     }
     list_remove(&node->list);
     kllog("alloc: phys page is at %p", 1, 0, result);
-    return result;
+    return result - limine_hhdm_request.response->offset;
 }
 
 // Allocates multiple physical pages
 
 void* alloc_phys_pages(size_t pages_count) {
-    size_t size = 0;
+    /*size_t size = 0;
     for (struct list* i = kernel.memory_list.list.next; i != &kernel.memory_list.list; i = i->next) {
         kllog("entry[%d] = %p", 1, 0, size, i);
         size++;
-    }
+    }*/
         if(pages_count == 1) {
                 void* result = alloc_phys_page();
                 return result;
@@ -179,11 +177,11 @@ void* alloc_phys_pages(size_t pages_count) {
             list_append(&new_node->list, &node->list);
             list_remove(&node->list);
             kllog("alloc: phys page is at %p", 1, 0, result);
-            return result;
+            return result - limine_hhdm_request.response->offset;
         } else if(node->pages) {
             list_remove(list);
             kllog("alloc: phys page is at %p", 1, 0, result);
-            return result;
+            return result - limine_hhdm_request.response->offset;
         }
     }
     return NULL;
@@ -211,7 +209,7 @@ void free_phys_pages(void* page, size_t count) {
 
 void allocator_test() {
         bool success = true;
-        uint8_t* test_int = (uint8_t*)alloc_phys_pages(1);
+        uint8_t* test_int = (uint8_t*)((long long unsigned int)alloc_phys_pages(1) | KERNEL_MEMORY_MASK);
         kllog("Address of the test int is %p", 1, 0, test_int);
     *test_int = 69;
     
@@ -247,7 +245,7 @@ void allocator_test() {
 
     kllog("Multi page physical allocation test starting...", 1, 0);
 
-    test_int = (uint8_t*)alloc_phys_pages(TEST_ALLOC_SIZE);
+    test_int = (uint8_t*)((long long unsigned int)alloc_phys_pages(TEST_ALLOC_SIZE) | KERNEL_MEMORY_MASK);
 
     for (size_t i = 0; i < TEST_ALLOC_SIZE; i++) {
         test_int[i] = (uint16_t)(i & 0xFF);
