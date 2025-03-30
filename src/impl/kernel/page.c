@@ -9,8 +9,8 @@
 #include <stdint.h>
 
 
-extern load_page_dir(uint32_t* page_directory);
-extern enable_paging();
+//extern load_page_dir(uint32_t* page_directory);
+//extern enable_paging();
 
 void bootmap_physical_memory() {
         kllog("entries array is at: %p", 1, 0, kernel.memmap_request.response->entries);
@@ -131,7 +131,7 @@ void init_paging() {
         
         kernel_mempair(&addr_resp);
         
-        uintptr_t pml4_physical = alloc_phys_pages(1);
+        uintptr_t pml4_physical = (uintptr_t)alloc_phys_pages(1);
 
         if(!pml4_physical) {
                 kpanic("Could not allocate pml4 table.");
@@ -151,7 +151,7 @@ void init_paging() {
         length  = (page_align_up((uintptr_t)section_text_end) - page_align_down((uintptr_t)section_text_begin))/PAGE_SIZE;
         kllog("mapping .info, %d pages", 1, 0, length);
 
-        if(!page_mmap())*/
+        if(!page_mmap())
 
         kllog("Loading page directory", 1, 0);
         //load_page_dir(&page_directory);
@@ -159,4 +159,5 @@ void init_paging() {
         //enable_paging();
 
         kllog("Paging initialization finished!", 1, 0);
+        */
 }

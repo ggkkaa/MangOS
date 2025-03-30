@@ -79,16 +79,13 @@ const char* tag_type_map[] = {
 
 Kernel kernel = {0};
 
-void kernel_main(uint32_t magic, uintptr_t addr) {
+void kernel_main() {
     init_serial();
 
     if(LIMINE_BASE_REVISION_SUPPORTED == false) {
         kpanic("This limine base revision is not supported.");
         halt();
     }
-
-    char buf[20];
-    const char* hex_upper_digits = "0123456789ABCDEF";
 
     kllog("This is an integer: %d", 1, 0, 69);
     kllog("This is a pointer : %p", 1, 0, (void*)0xabcd);
