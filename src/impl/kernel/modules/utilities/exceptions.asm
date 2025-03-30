@@ -168,7 +168,7 @@ base_handler:
     push r15
     mov rax, cr2
     push rax
-    add rdi, rsp
+    mov rdi, rsp
     call error_handler
     add rsp, 8
     pop r15
