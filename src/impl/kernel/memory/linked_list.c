@@ -173,9 +173,7 @@ void* alloc_phys_pages(size_t pages_count) {
         if(node->pages > pages_count) {
             struct list_node* new_node = (struct list_node*)((char*)node + PAGE_SIZE*pages_count);
             new_node->pages = node->pages - pages_count;
-            list_init(&new_node->list);
-            list_append(&new_node->list, &node->list);
-            list_remove(&node->list);
+            kllog("testing integer, should be 69: %d", 1, 0, *test_int);
             kllog("alloc: phys page is at %p", 1, 0, result);
             return result - limine_hhdm_request.response->offset;
         } else if(node->pages) {
@@ -188,7 +186,7 @@ void* alloc_phys_pages(size_t pages_count) {
 }
 
 void free_phys_pages(void* page, size_t count) {
-    struct list_node* node = (struct list_node*)page;
+    struct list_node* node = (struct list_node*)page + limine_hhdm_request.response->offset;
     list_init(&node->list);
     node->pages = count - 1;
     list_append(&node->list, &kernel.memory_list.list);
