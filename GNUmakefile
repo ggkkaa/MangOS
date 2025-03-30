@@ -85,6 +85,8 @@ obj/%.asm.o: src/%.asm GNUmakefile
 iso: build/$(OUTPUT)
 	cp -v  build/mangOS targets/x86_64/iso/boot
 
+	mkdir -p dist/x86_64
+
 	xorriso -as mkisofs \
 	 -R -r -J \
 	 -b boot/limine/limine-bios-cd.bin \
