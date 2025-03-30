@@ -5,7 +5,7 @@ override OUTPUT := mangOS
 
 CC := cc
 
-CFLAGS := -g -O2 -pipe
+CFLAGS := -g -O2 -pipe -Werror -Wno-unused-function -Wall -Wextra
 
 CPPFLAGS :=
 
