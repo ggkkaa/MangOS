@@ -140,7 +140,7 @@ void init_list(uintptr_t hhdm_offset) {
 
 // Allocates a single physical page.
 
-void* alloc_phys_page() {
+paddr_t alloc_phys_page() {
     struct list_node* node = (struct list_node*)kernel.memory_list.list.next;
 
     void* result = (void*)node;
@@ -152,19 +152,19 @@ void* alloc_phys_page() {
     }
     list_remove(&node->list);
     kllog("alloc: phys page is at %p", 1, 0, result);
-    return result - limine_hhdm_request.response->offset;
+    return (paddr_t)result - limine_hhdm_request.response->offset;
 }
 
 // Allocates multiple physical pages
 
-void* alloc_phys_pages(size_t pages_count) {
+paddr_t alloc_phys_pages(size_t pages_count) {
     /*size_t size = 0;
     for (struct list* i = kernel.memory_list.list.next; i != &kernel.memory_list.list; i = i->next) {
         kllog("entry[%d] = %p", 1, 0, size, i);
         size++;
     }*/
         if(pages_count == 1) {
-                void* result = alloc_phys_page();
+                paddr_t result = alloc_phys_page();
                 return result;
         }
     for(struct list* list = kernel.memory_list.list.next; list != &kernel.memory_list.list; list = list->next) {
@@ -173,19 +173,18 @@ void* alloc_phys_pages(size_t pages_count) {
         if(node->pages > pages_count) {
             struct list_node* new_node = (struct list_node*)((char*)node + PAGE_SIZE*pages_count);
             new_node->pages = node->pages - pages_count;
-            kllog("testing integer, should be 69: %d", 1, 0, *test_int);
             kllog("alloc: phys page is at %p", 1, 0, result);
-            return result - limine_hhdm_request.response->offset;
+            return (paddr_t)result - limine_hhdm_request.response->offset;
         } else if(node->pages) {
             list_remove(list);
             kllog("alloc: phys page is at %p", 1, 0, result);
-            return result - limine_hhdm_request.response->offset;
+            return (paddr_t)result - limine_hhdm_request.response->offset;
         }
     }
-    return NULL;
+    return (paddr_t)NULL;
 }
 
-void free_phys_pages(void* page, size_t count) {
+void free_phys_pages(paddr_t page, size_t count) {
     struct list_node* node = (struct list_node*)(page + limine_hhdm_request.response->offset);
     list_init(&node->list);
     node->pages = count - 1;
@@ -214,12 +213,7 @@ void allocator_test() {
     kllog("testing integer, should be 69: %d", 1, 0, *test_int);
 
     for (size_t i = 0; i < PAGE_SIZE; i++) {
-        if(i == 251) {
-            //continue;
-        }
         test_int[i] = (uint8_t)(i & 0xFF);
-        
-        //kllog("Write %d. %d Written.", 1, 0, i, test_int[i]);
     }
 
     kllog("Pattern filled.", 1, 0);
@@ -232,7 +226,7 @@ void allocator_test() {
         }
     }
 
-    free_phys_pages(test_int, 1);
+    free_phys_pages((paddr_t)(test_int - limine_hhdm_request.response->offset), 1);
 
     if(success == false) {
         kllog("Error! Memory allocation test failed!!!", 1, 2);
@@ -258,7 +252,7 @@ void allocator_test() {
         }
     }
 
-    free_phys_pages(test_int, TEST_ALLOC_SIZE);
+    free_phys_pages((paddr_t)(test_int - limine_hhdm_request.response->offset), TEST_ALLOC_SIZE);
 
     kllog("test passed!", 1, 0);
 
