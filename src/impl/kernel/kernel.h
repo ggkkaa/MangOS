@@ -17,8 +17,6 @@
 extern char kernel_start;
 extern char kernel_end;
 
-typedef uint64_t paddr_t;
-
 typedef struct 
 {
     struct mem_list memory_list;
