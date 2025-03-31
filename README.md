@@ -133,12 +133,12 @@ qemu-system-x86_64 -cdrom dist/x86_64/MangOS.iso -serial stdio -m 1024
 
 TASKS TO DO
 
-- [✔] - Very basic printf that outputs to serial
-- [✔] - Implement a GDT
-- [✔] - Implement an IDT
-- [✔] - Exception handling (i.e. just make an exception handler that prints when errors occur)
-- [✔] - Basic Log
-- [ ] - Make a Physical Allocator
+- [x] - Very basic printf that outputs to serial
+- [x] - Implement a GDT
+- [x] - Implement an IDT
+- [x] - Exception handling (i.e. just make an exception handler that prints when errors occur)
+- [x] - Basic Log
+- [x] - Make a Physical Allocator
 - [ ] - Make a page allocator (Bitmap, Page list, whichever one you feel like)
 - [ ] - Implement paging using the allocator
 - [ ] - Load the new page table
