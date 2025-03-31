@@ -167,7 +167,7 @@ paddr_t alloc_phys_pages(size_t pages_count) {
     }*/
 
         if(list_empty(&kernel.memory_list.list)) {
-                kpanic("No memory.")
+                kpanic("No memory.");
         }
         if(pages_count == 1) {
                 paddr_t result = alloc_phys_page();
