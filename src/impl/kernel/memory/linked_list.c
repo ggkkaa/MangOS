@@ -150,7 +150,7 @@ paddr_t alloc_phys_page() {
         list_init(&new_node->list);
         list_append(&new_node->list, &node->list);
     }
-    if(node->list.next == NULL) kllog("Hey. It was NULL", 1, 2);
+    if(node->list.next == NULL) kpanic("Hey. It was NULL");
     kllog("alloc: node->list.next is at %p", 1, 0, &node->list.next);
     list_remove(&node->list);
     kllog("alloc: phys page is at %p", 1, 0, result);
@@ -167,7 +167,7 @@ paddr_t alloc_phys_pages(size_t pages_count) {
     }*/
 
         if(list_empty(&kernel.memory_list.list)) {
-                kllog("Memory is full", 0, 2);
+                kpanic("No memory.")
         }
         if(pages_count == 1) {
                 paddr_t result = alloc_phys_page();
