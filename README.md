@@ -142,7 +142,7 @@ TASKS TO DO
 - [ ] - Make a page allocator (Bitmap, Page list, whichever one you feel like)
 - [ ] - Implement paging using the allocator
 - [ ] - Load the new page table
-- [ ] - REACH GUI MODE
+- [ ] -  TSS
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
