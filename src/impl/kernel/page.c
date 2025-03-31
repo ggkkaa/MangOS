@@ -131,7 +131,7 @@ void init_paging() {
         
         kernel_mempair(&addr_resp);
         
-        uintptr_t pml4_physical = (uintptr_t)alloc_phys_pages(1);
+        paddr_t pml4_physical = (paddr_t)alloc_phys_pages(1);
 
         if(!pml4_physical) {
                 kpanic("Could not allocate pml4 table.");
