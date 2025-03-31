@@ -145,14 +145,16 @@ paddr_t alloc_phys_page() {
 
     void* result = (void*)node;
     if(node->pages > 0) {
-        struct list_node* new_node = (struct list_node*)((char*)node + PAGE_SIZE);
+        struct list_node* new_node = (struct list_node*)(((char*)node) + PAGE_SIZE);
         new_node->pages = node->pages - 1;
         list_init(&new_node->list);
         list_append(&new_node->list, &node->list);
     }
+    if(node->list.next == NULL) kllog("Hey. It was NULL", 1, 2);
+    kllog("alloc: node->list.next is at %p", 1, 0, &node->list.next);
     list_remove(&node->list);
     kllog("alloc: phys page is at %p", 1, 0, result);
-    return (paddr_t)result - limine_hhdm_request.response->offset;
+    return (paddr_t)(result - limine_hhdm_request.response->offset);
 }
 
 // Allocates multiple physical pages
@@ -163,6 +165,10 @@ paddr_t alloc_phys_pages(size_t pages_count) {
         kllog("entry[%d] = %p", 1, 0, size, i);
         size++;
     }*/
+
+        if(list_empty(&kernel.memory_list.list)) {
+                kllog("Memory is full", 0, 2);
+        }
         if(pages_count == 1) {
                 paddr_t result = alloc_phys_page();
                 return result;
@@ -171,7 +177,7 @@ paddr_t alloc_phys_pages(size_t pages_count) {
         struct list_node* node = (struct list_node*)list;
         void* result = node;
         if(node->pages > pages_count) {
-            struct list_node* new_node = (struct list_node*)((char*)node + PAGE_SIZE*pages_count);
+            struct list_node* new_node = (struct list_node*)(((char*)node) + PAGE_SIZE*pages_count);
             new_node->pages = node->pages - pages_count;
             kllog("alloc: phys page is at %p", 1, 0, result);
             return (paddr_t)result - limine_hhdm_request.response->offset;
