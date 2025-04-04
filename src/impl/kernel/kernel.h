@@ -19,6 +19,7 @@ extern char kernel_end;
 
 typedef struct 
 {
+    uintptr_t hhdm;
     struct mem_list memory_list;
     struct GDTR gdtr;
     struct IDTR idtr;
