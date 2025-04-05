@@ -61,36 +61,33 @@ This is a simple OS made by myself to train my C skills.
 
 ### Requirements
 
-Docker
+- Docker
 
 - apt
 
-```sh
-sudo apt install docker
-```
+- qemu
 
-Build the docker image by running
-
-```sh
-docker build buildenv -t mangos-buildenv
-```
 
 ### Installation
 
-To enter your build environment, run one of these scripts based on your operating system and
-shell:
-
 - Linux/MacOS:
 
+Linux has a build script made specifically for it, to build, just make sure your docker daemon is running, and run
 ```sh
-docker run --rm -it -v $(pwd):/root/env mangos-buildenv
+chmod +x ./build,sh
+./build.sh
 ```
+
+This will also automatically run qemu.
 
 - Windows(CMD):
 
 ```sh
 docker run --rm -it -v "%cd%":/root/env mangos-buildenv
+
+make iso
 ```
+
 
 - Windows(Powershell):
 
