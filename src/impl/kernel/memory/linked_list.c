@@ -93,10 +93,7 @@ paddr_t alloc_phys_page() {
         list_append(&new_node->list, &node->list);
     }
     if(node->list.next == NULL) kpanic("Hey. It was NULL");
-    kllog("alloc: node->list.next is at %p", 1, 0, &node->list.next);
-    kllog("alloc: node->list.next is %p", 1, 0, node->list.next);
     list_remove(&node->list);
-    kllog("alloc: phys page is at %p", 1, 0, result);
     return (paddr_t)(result - limine_hhdm_request.response->offset);
 }
 
@@ -115,7 +112,6 @@ paddr_t alloc_phys_pages(size_t pages_count) {
             list_init(&new_node->list);
             list_append(&new_node->list, list);
             list_remove(list);
-            kllog("alloc: phys page is at %p", 1, 0, result);
             return (paddr_t)result - limine_hhdm_request.response->offset;
         } else if(node->pages == pages_count) {
             list_remove(list);
