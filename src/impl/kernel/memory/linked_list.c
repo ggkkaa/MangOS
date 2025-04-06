@@ -105,7 +105,6 @@ paddr_t alloc_phys_page() {
 paddr_t alloc_phys_pages(size_t pages_count) {
     if(pages_count == 0) return (paddr_t)NULL;
     if(pages_count == 1) return alloc_phys_page();
-    pages_count--;
 
     for(struct list* list = kernel.memory_list.list.next; list != &kernel.memory_list.list; list = list->next) {
         struct list_node* node = (struct list_node*)list;
