@@ -23,12 +23,10 @@ void map_all() {
                 
                 switch (region.kind)
                 {
-                //case LIMINE_MEMMAP_FRAMEBUFFER:
-                //        flags |= KERNEL_PFLAG_WRITE_COMBINE;
+                case LIMINE_MEMMAP_FRAMEBUFFER:
                 case LIMINE_MEMMAP_USABLE:
-                //case LIMINE_MEMMAP_EXECUTABLE_AND_MODULES:
-                //case LIMINE_MEMMAP_BOOTLOADER_RECLAIMABLE:
-                //case LIMINE_MEMMAP_ACPI_RECLAIMABLE:
+                case LIMINE_MEMMAP_EXECUTABLE_AND_MODULES:
+                case LIMINE_MEMMAP_BOOTLOADER_RECLAIMABLE:
                         paddr_t phys = page_align_down(region.address);
                         uintptr_t virt = page_align_down(region.address + kernel.hhdm);
                         size_t pages = region.size/PAGE_SIZE;
