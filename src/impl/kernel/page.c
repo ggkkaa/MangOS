@@ -29,7 +29,7 @@ void map_kernel() {
         length = page_align_up(KERNEL_END - WRITE_ALLOWED_START) / PAGE_SIZE;
         phys = kernel.phys_addr + ((void*)WRITE_ALLOWED_START - kernel.virt_addr);
         kllog("Mapping writeable part of the kernel. Physical address %p to virtual address %p, %d pages.", 1, 0, phys, page_align_down((uintptr_t)WRITE_ALLOWED_START), length);
-        page_mmap(kernel.pml4, phys, page_align_down((uintptr_t)WRITE_ALLOWED_START), length, KERNEL_PFLAG_PRESENT);
+        page_mmap(kernel.pml4, phys, page_align_down((uintptr_t)WRITE_ALLOWED_START), length, KERNEL_PFLAG_PRESENT | KERNEL_PFLAG_WRITE);
 }
 
 void map_all() {
