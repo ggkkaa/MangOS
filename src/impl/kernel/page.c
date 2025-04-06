@@ -11,8 +11,26 @@
 
 extern struct limine_hhdm_request limine_hhdm_request;
 
+
+extern uint64_t KERNEL_START[];
+extern uint64_t WRITE_ALLOWED_START[];
+extern uint64_t KERNEL_END[];
+
 //extern load_page_dir(uint32_t* page_directory);
 //extern enable_paging();
+
+void map_kernel() {
+        uint64_t length = page_align_up(WRITE_ALLOWED_START - KERNEL_START) / PAGE_SIZE;
+        uint64_t phys = kernel.phys_addr + ((void*)KERNEL_START - kernel.virt_addr);
+
+        kllog("Mapping read-only part of the kernel. Physical address %p to virtual address %p, %d pages.", 1, 0, phys, page_align_down((uintptr_t)KERNEL_START), length);
+        page_mmap(kernel.pml4, phys, page_align_down(kernel_start), length, KERNEL_PFLAG_PRESENT);
+
+        length = page_align_up(KERNEL_END - WRITE_ALLOWED_START) / PAGE_SIZE;
+        phys = kernel.phys_addr + ((void*)WRITE_ALLOWED_START - kernel.virt_addr);
+        kllog("Mapping writeable part of the kernel. Physical address %p to virtual address %p, %d pages.", 1, 0, phys, page_align_down((uintptr_t)WRITE_ALLOWED_START), length);
+        page_mmap(kernel.pml4, phys, page_align_down((uintptr_t)WRITE_ALLOWED_START), length, KERNEL_PFLAG_PRESENT);
+}
 
 void map_all() {
         BootMemRegion region;
@@ -36,6 +54,8 @@ void map_all() {
                         break;
                 }
         }
+        kllog("Finished mapping stuff, time to map the kernel.", 1, 0);
+        map_kernel();
 }
 
 bool page_mmap(page_t pml4_address, uintptr_t physical_addr, uintptr_t virtual_addr, size_t page_count, pageflags_t flags) {
