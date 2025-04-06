@@ -141,23 +141,4 @@ void init_paging() {
         memset(kernel.pml4, 0, PAGE_SIZE);
         map_all();
 
-        halt();
-
-        /*uintptr_t physical, virtual;
-        size_t length;
-
-        physical = page_align_down(addr_resp.physical + (((uintptr_t)section_text_begin) - addr_resp.virtual));
-        virtual = page_align_down((uintptr_t)section_text_begin);
-        length  = (page_align_up((uintptr_t)section_text_end) - page_align_down((uintptr_t)section_text_begin))/PAGE_SIZE;
-        kllog("mapping .info, %d pages", 1, 0, length);
-
-        if(!page_mmap())
-
-        kllog("Loading page directory", 1, 0);
-        //load_page_dir(&page_directory);
-        kllog("Enabling Paging", 1, 0);
-        //enable_paging();
-
-        kllog("Paging initialization finished!", 1, 0);
-        */
 }
