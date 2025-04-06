@@ -45,6 +45,12 @@ volatile struct limine_hhdm_request limine_hhdm_request = {
         .revision = 0,
 };
 
+__attribute__((used, section(".limine_requests")))
+volatile struct limine_kernel_address_request limine_kernel_addr_request = {
+    .id = LIMINE_KERNEL_ADDRESS_REQUEST,
+    .revision = 0
+};
+
 __attribute__((used, section(".limine_requests_start")))
 static volatile LIMINE_REQUESTS_START_MARKER;
 
@@ -101,7 +107,8 @@ void kernel_main() {
     kllog("IDT Initialized", 1, 0); 
 
     uintptr_t hhdm = limine_hhdm_request.response->offset;
-
+        kernel.phys_addr = limine_kernel_addr_request.response->physical_base;
+        kernel.virt_addr = (void*)limine_kernel_addr_request.response->virtual_base
     kllog("hhdm offset: %p", 1, 0, hhdm);
 
     kllog("Finding framebuffer...", 1, 0);

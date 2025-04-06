@@ -27,5 +27,7 @@ typedef struct
     char* kernel_start;
     char* kernel_end;
     page_t pml4;
+    paddr_t phys_addr;
+    void* virt_addr;
 } Kernel;
 extern Kernel kernel;
