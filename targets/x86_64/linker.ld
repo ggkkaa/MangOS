@@ -21,6 +21,8 @@ SECTIONS
 
         . = ALIGN(CONSTANT(MAXPAGESIZE));
 
+        KERNEL_START = .;
+
         section_text_begin = .;
         .text : {
                 *(.text .text.*)
@@ -35,6 +37,8 @@ SECTIONS
 
         . = ALIGN(CONSTANT(MAXPAGESIZE));
 
+        WRITE_ALLOWED_START = .;
+
         .data : {
                 *(.data .data.*)
         } :data 
@@ -43,6 +47,8 @@ SECTIONS
                 *(.bss .bss.*)
                 *(COMMON)
         } :data
+
+        KERNEL_END = .;
 
         /DISCARD/ : {
                 *(.eh_frame*)
