@@ -14,9 +14,6 @@
 #define REGION_KERNEL_STACK_PAGES 10
 #define KERNEL_MEMORY_MASK      REGION_HHDM_ADDR
 
-extern char kernel_start;
-extern char kernel_end;
-
 typedef struct 
 {
     uintptr_t hhdm;
