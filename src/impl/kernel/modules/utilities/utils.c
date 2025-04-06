@@ -1,12 +1,7 @@
+#include "../../kernel.h"
 #include "utils.h"
 #include "limine/limine.h"
 #include "kassert.h"
-
-__attribute__((used, section(".limine_requests")))
-volatile struct limine_executable_address_request limine_executable_address_request = {
-        .id = LIMINE_EXECUTABLE_ADDRESS_REQUEST,
-        .revision = 0, 
-};
 
 void disable_interrupts(){
     asm("cli");
@@ -86,8 +81,7 @@ int memcmp(const void *pointer1, const void *pointer2, size_t size) {
 }
 
 void kernel_mempair(memory_pair* mempair) {
-        assert(limine_executable_address_request.response);
-        mempair->virtual = limine_executable_address_request.response->virtual_base ;
-        mempair->physical = limine_executable_address_request.response->physical_base;
+        mempair->virtual = (uintptr_t)kernel.virt_addr;
+        mempair->physical = (uintptr_t)kernel.phys_addr;
     }
     
