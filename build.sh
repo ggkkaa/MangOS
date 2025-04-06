@@ -28,4 +28,4 @@ docker run --rm -it \
     make iso
 
 echo "[*] Running '$ISO_FILE' in QEMU"
-qemu-system-x86_64 -cdrom "$ISO_FILE" -serial stdio -m 1024 --no-reboot
+qemu-system-x86_64 -cdrom "$ISO_FILE" -serial stdio --no-reboot

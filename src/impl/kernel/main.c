@@ -98,11 +98,11 @@ void kernel_main() {
     kllog("GDT Initialized", 1, 0);
     kllog("Initializing IDT", 1, 0);
     init_IDT(); 
-        kllog("IDT Initialized", 1, 0); 
+    kllog("IDT Initialized", 1, 0); 
 
-        uintptr_t hhdm = limine_hhdm_request.response->offset;
+    uintptr_t hhdm = limine_hhdm_request.response->offset;
 
-        kllog("hhdm offset: %p", 1, 0, hhdm);
+    kllog("hhdm offset: %p", 1, 0, hhdm);
 
     kllog("Finding framebuffer...", 1, 0);
 
@@ -122,10 +122,9 @@ void kernel_main() {
     
 
     init_list(hhdm);
+    kllog("PList has been initialized", 1, 0);
     init_paging();
 
     halt();
-
-
 
 }

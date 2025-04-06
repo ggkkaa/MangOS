@@ -32,6 +32,7 @@ override CFLAGS += \
 	-mno-mmx \
 	-mno-sse \
 	-mno-sse2 \
+	-fno-omit-frame-pointer \
 	-mno-red-zone \
 	-mcmodel=kernel
 

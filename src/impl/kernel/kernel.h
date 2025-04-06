@@ -27,6 +27,5 @@ typedef struct
     char* kernel_start;
     char* kernel_end;
     page_t pml4;
-    struct limine_memmap_request memmap_request;
 } Kernel;
 extern Kernel kernel;
