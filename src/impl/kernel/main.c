@@ -46,8 +46,8 @@ volatile struct limine_hhdm_request limine_hhdm_request = {
 };
 
 __attribute__((used, section(".limine_requests")))
-volatile struct limine_kernel_address_request limine_kernel_addr_request = {
-    .id = LIMINE_KERNEL_ADDRESS_REQUEST,
+volatile struct limine_executable_address_request limine_kernel_addr_request = {
+    .id = LIMINE_EXECUTABLE_ADDRESS_REQUEST,
     .revision = 0
 };
 
@@ -108,7 +108,7 @@ void kernel_main() {
 
     uintptr_t hhdm = limine_hhdm_request.response->offset;
         kernel.phys_addr = limine_kernel_addr_request.response->physical_base;
-        kernel.virt_addr = (void*)limine_kernel_addr_request.response->virtual_base
+        kernel.virt_addr = (void*)limine_kernel_addr_request.response->virtual_base;
     kllog("hhdm offset: %p", 1, 0, hhdm);
 
     kllog("Finding framebuffer...", 1, 0);
