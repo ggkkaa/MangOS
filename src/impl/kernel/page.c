@@ -14,7 +14,7 @@ extern struct limine_hhdm_request limine_hhdm_request;
 //extern load_page_dir(uint32_t* page_directory);
 //extern enable_paging();
 
-void bootmap_physical_memory() {
+void map_all() {
         BootMemRegion region;
         for(size_t i = 0; i < boot_get_memregion_count(); ++i){
                 boot_get_memregion_at(&region, i);
@@ -121,7 +121,7 @@ void init_paging() {
         }
 
         memset(kernel.pml4, 0, PAGE_SIZE);
-        bootmap_physical_memory();
+        map_all();
 
         halt();
 
