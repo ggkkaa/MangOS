@@ -93,10 +93,6 @@ void kernel_main() {
         halt();
     }
 
-    kllog("This is an integer: %d", 1, 0, 69);
-    kllog("This is a pointer : %p", 1, 0, (void*)0xabcd);
-    kllog("This is a string  : %s", 1, 0, "Hello!");
-    kllog("Multiple variable test %p, %d, %s, %p", 1, 0, (void*)0xabcd, 69, "Test", (void*)0xef12);
     kllog("Disabling interrupts.", 1, 0);
     disable_interrupts();
     kllog("Initializing GDT", 1, 0);
