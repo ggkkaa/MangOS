@@ -20,14 +20,19 @@ extern uint64_t KERNEL_END[];
 //extern enable_paging();
 
 void map_kernel() {
-        uint64_t length = page_align_up(WRITE_ALLOWED_START - KERNEL_START) / PAGE_SIZE;
+        uint64_t length = page_align_up((void*)WRITE_ALLOWED_START - (void*)KERNEL_START) / PAGE_SIZE;
         uint64_t phys = kernel.phys_addr + ((void*)KERNEL_START - kernel.virt_addr);
 
+        kllog("The kernel's read only section is %p to %p, the length is %d pages. If it isn't 2-4 pages then we got an issue. More debug info: %d, %d", 1, 0, KERNEL_START, WRITE_ALLOWED_START, length, WRITE_ALLOWED_START - KERNEL_START, page_align_up(WRITE_ALLOWED_START - KERNEL_START));
+
         kllog("Mapping read-only part of the kernel. Physical address %p to virtual address %p, %d pages.", 1, 0, phys, page_align_down((uintptr_t)KERNEL_START), length);
-        page_mmap(kernel.pml4, phys, page_align_down(kernel_start), length, KERNEL_PFLAG_PRESENT);
+        page_mmap(kernel.pml4, phys, page_align_down((uintptr_t)KERNEL_START), length, KERNEL_PFLAG_PRESENT);
 
         length = page_align_up(KERNEL_END - WRITE_ALLOWED_START) / PAGE_SIZE;
         phys = kernel.phys_addr + ((void*)WRITE_ALLOWED_START - kernel.virt_addr);
+
+        kllog("The kernel's writeable section is %p to %p, the length is %d pages. If it isn't 4 - read only pages then we got an issue.", 1, 0, WRITE_ALLOWED_START, KERNEL_END, length);
+
         kllog("Mapping writeable part of the kernel. Physical address %p to virtual address %p, %d pages.", 1, 0, phys, page_align_down((uintptr_t)WRITE_ALLOWED_START), length);
         page_mmap(kernel.pml4, phys, page_align_down((uintptr_t)WRITE_ALLOWED_START), length, KERNEL_PFLAG_PRESENT | KERNEL_PFLAG_WRITE);
 }
@@ -140,5 +145,5 @@ void init_paging() {
 
         memset(kernel.pml4, 0, PAGE_SIZE);
         map_all();
-
+        kllog("Set up paging!!!", 1, 0);
 }

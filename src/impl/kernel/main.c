@@ -132,6 +132,14 @@ void kernel_main() {
     kllog("PList has been initialized", 1, 0);
     init_paging();
 
+    asm volatile(\
+            "mov %0, %%cr3\n"\
+            :\
+            : "r" ((uintptr_t)kernel.pml4 - kernel.hhdm)
+    );
+
+    kllog("We have paging!", 1, 0);
+
     halt();
 
 }
