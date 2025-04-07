@@ -1,5 +1,7 @@
+#include "../../kernel.h"
 #include "utils.h"
-
+#include "limine/limine.h"
+#include "kassert.h"
 
 void disable_interrupts(){
     asm("cli");
@@ -77,3 +79,9 @@ int memcmp(const void *pointer1, const void *pointer2, size_t size) {
 
     return 0;
 }
+
+void kernel_mempair(memory_pair* mempair) {
+        mempair->virtual = (uintptr_t)kernel.virt_addr;
+        mempair->physical = (uintptr_t)kernel.phys_addr;
+    }
+    

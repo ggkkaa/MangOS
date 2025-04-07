@@ -28,6 +28,7 @@
 #include "utils.h"
 #include "./memory/linked_list.h"
 #include "limine/limine.h"
+#include "page.h"
 
 __attribute__((used, section(".limine_requests")))
 static volatile LIMINE_BASE_REVISION(3);
@@ -42,6 +43,12 @@ __attribute__((used, section(".limine_requests")))
 volatile struct limine_hhdm_request limine_hhdm_request = {
         .id = LIMINE_HHDM_REQUEST,
         .revision = 0,
+};
+
+__attribute__((used, section(".limine_requests")))
+volatile struct limine_executable_address_request limine_kernel_addr_request = {
+    .id = LIMINE_EXECUTABLE_ADDRESS_REQUEST,
+    .revision = 0
 };
 
 __attribute__((used, section(".limine_requests_start")))
@@ -78,16 +85,13 @@ const char* tag_type_map[] = {
 
 Kernel kernel = {0};
 
-void kernel_main(uint32_t magic, uintptr_t addr) {
+void kernel_main() {
     init_serial();
 
     if(LIMINE_BASE_REVISION_SUPPORTED == false) {
         kpanic("This limine base revision is not supported.");
         halt();
     }
-
-    char buf[20];
-    const char* hex_upper_digits = "0123456789ABCDEF";
 
     kllog("This is an integer: %d", 1, 0, 69);
     kllog("This is a pointer : %p", 1, 0, (void*)0xabcd);
@@ -100,11 +104,12 @@ void kernel_main(uint32_t magic, uintptr_t addr) {
     kllog("GDT Initialized", 1, 0);
     kllog("Initializing IDT", 1, 0);
     init_IDT(); 
-        kllog("IDT Initialized", 1, 0); 
+    kllog("IDT Initialized", 1, 0); 
 
-        uintptr_t hhdm = limine_hhdm_request.response->offset;
-
-        kllog("hhdm offset: %p", 1, 0, hhdm);
+    uintptr_t hhdm = limine_hhdm_request.response->offset;
+        kernel.phys_addr = limine_kernel_addr_request.response->physical_base;
+        kernel.virt_addr = (void*)limine_kernel_addr_request.response->virtual_base;
+    kllog("hhdm offset: %p", 1, 0, hhdm);
 
     kllog("Finding framebuffer...", 1, 0);
 
@@ -124,9 +129,17 @@ void kernel_main(uint32_t magic, uintptr_t addr) {
     
 
     init_list(hhdm);
+    kllog("PList has been initialized", 1, 0);
+    init_paging();
+
+    asm volatile(\
+            "mov %0, %%cr3\n"\
+            :\
+            : "r" ((uintptr_t)kernel.pml4 - kernel.hhdm)
+    );
+
+    kllog("We have paging!", 1, 0);
 
     halt();
-
-
 
 }

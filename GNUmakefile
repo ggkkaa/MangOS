@@ -5,7 +5,7 @@ override OUTPUT := mangOS
 
 CC := cc
 
-CFLAGS := -g -O2 -pipe
+CFLAGS := -g -O2 -pipe -Werror -Wno-unused-function -Wall -Wextra
 
 CPPFLAGS :=
 
@@ -32,6 +32,7 @@ override CFLAGS += \
 	-mno-mmx \
 	-mno-sse \
 	-mno-sse2 \
+	-fno-omit-frame-pointer \
 	-mno-red-zone \
 	-mcmodel=kernel
 
@@ -85,6 +86,8 @@ obj/%.asm.o: src/%.asm GNUmakefile
 iso: build/$(OUTPUT)
 	cp -v  build/mangOS targets/x86_64/iso/boot
 
+	mkdir -p dist/x86_64
+
 	xorriso -as mkisofs \
 	 -R -r -J \
 	 -b boot/limine/limine-bios-cd.bin \
@@ -96,7 +99,7 @@ iso: build/$(OUTPUT)
         -efi-boot-part \
 	--efi-boot-image \
 	--protective-msdos-label \
-        ./targets/x86_64/iso/ -o dist/x86_64/MangOS.iso
+        targets/x86_64/iso/ -o dist/x86_64/MangOS.iso
 
 .PHONY: clean
 clean:

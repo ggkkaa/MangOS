@@ -1,6 +1,8 @@
 #include "../x86_64/include/gdt.h"
 #include "../x86_64/include/idt.h"
 #include "./memory/linked_list.h"
+#include "page.h"
+#include "limine/limine.h"
 
 #define REGION_USER_STACK_ADDR  0x0000700000000000LL
 #define REGION_USER_STACK_PAGES 6
@@ -10,19 +12,19 @@
 #define REGION_IO_SPACE_PAGES 524288
 #define REGION_KERNEL_STACK_ADDR  0xFFFFFFFFFFFF5FFFLL
 #define REGION_KERNEL_STACK_PAGES 10
-
-
-extern char kernel_start;
-extern char kernel_end;
+#define KERNEL_MEMORY_MASK      REGION_HHDM_ADDR
 
 typedef struct 
 {
+    uintptr_t hhdm;
     struct mem_list memory_list;
     struct GDTR gdtr;
     struct IDTR idtr;
     uint64_t available_pages;
     char* kernel_start;
     char* kernel_end;
-    
+    page_t pml4;
+    paddr_t phys_addr;
+    void* virt_addr;
 } Kernel;
 extern Kernel kernel;

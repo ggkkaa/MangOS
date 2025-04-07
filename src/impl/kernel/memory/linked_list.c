@@ -26,85 +26,53 @@
 #include "print.h"
 #include "../panic.h"
 #include "limine/limine.h"
+#include "bootutils.h"
 
-__attribute__((used, section(".limine_requests")))
-volatile struct limine_memmap_request limine_memmap_request = {
-        .id = LIMINE_MEMMAP_REQUEST,
-        .revision = 0,
-};
+extern struct limine_hhdm_request limine_hhdm_request;
+
 /*
     Initializes the lined list for physical allocation.
 
     First, it initializes the list and it reads the mmap tags.
 
     Then, it prints them out and assigns a list node at the
-    beggining of each
+    beginning of each
 
 */
 
-static const char* limine_memmap_str[] = {
-        "Usable",
-        "Reserved",
-        "Acpi Reclaimable",
-        "Acpi NVS",
-        "Bad Memory",
-        "Bootloader Reclaimable",
-        "Kernel and Modules",
-        "Framebuffer"
-};
-
 void init_list(uintptr_t hhdm_offset) {
-        
         kllog("hhdm offset: %p", 1, 0, hhdm_offset);
+        kernel.hhdm = hhdm_offset;
 
         kernel.available_pages = 0;
         list_init(&kernel.memory_list.list);
-        uint64_t available_memory = 0;
 
-        for (size_t i = 0; i < limine_memmap_request.response->entry_count; ++i)
-        {
-                struct limine_memmap_entry* entry = limine_memmap_request.response->entries[i];
-
-                kllog("%d st memory entry at %p", 1, 0, i, (void*)entry->base);
-
-                kllog("%d pages.", 1, 0, (size_t)(entry->length / PAGE_SIZE));
-
-                kllog("Type: %s", 1, 0, limine_memmap_str[entry->type]);
-                
-                
-
-                if(entry->type == LIMINE_MEMMAP_USABLE) {
-                        // set up a node for the free spot in memory,
-                        struct list_node *virtual_node_loc = (struct list_node*)(entry->base + hhdm_offset);
-
-                        struct list_node *current_node = virtual_node_loc;
-
-                        list_init(&current_node->list);
-                        
-                        current_node->pages = entry->length / PAGE_SIZE;
-                        
-                        list_append(&current_node->list, &kernel.memory_list.list);
-                        
-                        // print out the node that was set up
-                        kllog("The memory setup node is at: %p", 1, 0, current_node);
-                        kllog("The memory setup node is %d pages big", 1, 0, current_node->pages);
-                        
-                        // And modify kernel values.
-                        available_memory += entry->length;
-                        kernel.available_pages = available_memory / PAGE_SIZE;
-                }
-        }
+        BootMemRegion region;
         
-        if(kernel.memory_list.list.next == &kernel.memory_list.list)
+        kllog("%d", 1, 0, boot_get_memregion_count());
+
+        for (size_t i = 0; i < boot_get_memregion_count(); ++i)
         {
-                kpanic("The list is empty.");
-        }
+            boot_get_memregion_at(&region, i);
+            kllog("Region %d: addr = %p size = %p kind = %d", 1, 0, (int)i, (void*)region.address, (void*)(uintptr_t)region.size, (int)region.kind);
 
-        kllog("The main node is at %p", 1, 0, &kernel.memory_list.list);
-
-        for(struct list* list = kernel.memory_list.list.next; list != &kernel.memory_list.list; list = list->next) {
-                kllog("This node is at %p", 1, 0, list);
+            if(region.kind == BOOT_MEMREGION_USABLE) {
+                if(region.address < BOOT_HHDM_SIZE) {
+                    paddr_t region_end = region.address + region.size;
+                    size_t pages_available = region.size/PAGE_SIZE;
+                    if(region_end > BOOT_HHDM_SIZE) {
+                        pages_available = (BOOT_HHDM_SIZE - region.address) / PAGE_SIZE;
+                    }
+                    void* region_virtual = (void*)(region.address + kernel.hhdm);
+                    struct list_node* node = region_virtual;
+                    list_init(&node->list);
+                    node->pages = pages_available - 1;
+                    list_append(&node->list, &kernel.memory_list.list);
+                } else {
+                    kllog("Region available but ignored.", 1, 0);
+                }
             }
+        }  
 
         kllog("Finished setting up the list. Now starting test.", 1, 0);
 
@@ -113,45 +81,51 @@ void init_list(uintptr_t hhdm_offset) {
 
 // Allocates a single physical page.
 
-void* alloc_phys_page() {
+paddr_t alloc_phys_page() {
+    if(list_empty(&kernel.memory_list.list)) return (paddr_t)NULL;
     struct list_node* node = (struct list_node*)kernel.memory_list.list.next;
-
-    k_serial_printf("BRO JUST PRINT PLEASE");
-
     void* result = (void*)node;
-    if(node->pages > 0) {
-        struct list_node* new_node = (struct list_node*)((char*)node + PAGE_SIZE);
+
+    if(node->pages) {
+        struct list_node* new_node = (struct list_node*)(((char*)node) + PAGE_SIZE);
         new_node->pages = node->pages - 1;
         list_init(&new_node->list);
         list_append(&new_node->list, &node->list);
     }
+    if(node->list.next == NULL) kpanic("Hey. It was NULL");
     list_remove(&node->list);
-    return result;
+    return (paddr_t)(result - limine_hhdm_request.response->offset);
 }
 
 // Allocates multiple physical pages
 
-void* alloc_phys_pages(size_t pages_count) {
-        if(pages_count == 1) {
-                void* result = alloc_phys_page();
-                return result;
-        }
+paddr_t alloc_phys_pages(size_t pages_count) {
+    if(pages_count == 0) return (paddr_t)NULL;
+    if(pages_count == 1) return alloc_phys_page();
+
     for(struct list* list = kernel.memory_list.list.next; list != &kernel.memory_list.list; list = list->next) {
         struct list_node* node = (struct list_node*)list;
         void* result = node;
         if(node->pages > pages_count) {
-            struct list_node* new_node = (struct list_node*)((char*)node + PAGE_SIZE*pages_count);
+            struct list_node* new_node = (struct list_node*)(((char*)node) + PAGE_SIZE*pages_count);
             new_node->pages = node->pages - pages_count;
             list_init(&new_node->list);
-            list_append(&new_node->list, &node->list);
-            list_remove(&node->list);
-            return result;
-        } else if(node->pages) {
+            list_append(&new_node->list, list);
             list_remove(list);
-            return result;
+            return (paddr_t)result - limine_hhdm_request.response->offset;
+        } else if(node->pages == pages_count) {
+            list_remove(list);
+            return (paddr_t)result - limine_hhdm_request.response->offset;
         }
     }
-    return NULL;
+    return (paddr_t)NULL;
+}
+
+void free_phys_pages(paddr_t page, size_t count) {
+    struct list_node* node = (struct list_node*)(page + limine_hhdm_request.response->offset);
+    list_init(&node->list);
+    node->pages = count - 1;
+    list_append(&node->list, &kernel.memory_list.list);
 }
 
 #define TEST_ALLOC_SIZE 2
@@ -169,19 +143,15 @@ void* alloc_phys_pages(size_t pages_count) {
 
 void allocator_test() {
         bool success = true;
-        uint8_t* test_int = (uint8_t*)alloc_phys_pages(1);
+        uint8_t* test_int = (uint8_t*)((long long unsigned int)alloc_phys_pages(1) | KERNEL_MEMORY_MASK);
+        if(!test_int) kpanic("Test int is null.");
         kllog("Address of the test int is %p", 1, 0, test_int);
     *test_int = 69;
     
     kllog("testing integer, should be 69: %d", 1, 0, *test_int);
 
     for (size_t i = 0; i < PAGE_SIZE; i++) {
-        if(i == 251) {
-            //continue;
-        }
         test_int[i] = (uint8_t)(i & 0xFF);
-        
-        kllog("Write %d. %d Written.", 1, 0, i, test_int[i]);
     }
 
     kllog("Pattern filled.", 1, 0);
@@ -193,6 +163,9 @@ void allocator_test() {
             break;
         }
     }
+
+    free_phys_pages((paddr_t)(test_int - limine_hhdm_request.response->offset), 1);
+
     if(success == false) {
         kllog("Error! Memory allocation test failed!!!", 1, 2);
         kpanic("Single Page Allocation Failed");
@@ -202,7 +175,7 @@ void allocator_test() {
 
     kllog("Multi page physical allocation test starting...", 1, 0);
 
-    test_int = (uint16_t*)alloc_phys_pages(TEST_ALLOC_SIZE);
+    test_int = (uint8_t*)((long long unsigned int)alloc_phys_pages(TEST_ALLOC_SIZE) | KERNEL_MEMORY_MASK);
 
     for (size_t i = 0; i < TEST_ALLOC_SIZE; i++) {
         test_int[i] = (uint16_t)(i & 0xFF);
@@ -217,6 +190,7 @@ void allocator_test() {
         }
     }
 
+    free_phys_pages((paddr_t)(test_int - limine_hhdm_request.response->offset), TEST_ALLOC_SIZE);
 
     kllog("test passed!", 1, 0);
 

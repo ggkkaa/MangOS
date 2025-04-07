@@ -61,36 +61,33 @@ This is a simple OS made by myself to train my C skills.
 
 ### Requirements
 
-Docker
+- Docker
 
 - apt
 
-```sh
-sudo apt install docker
-```
+- qemu
 
-Build the docker image by running
-
-```sh
-docker build buildenv -t mangos-buildenv
-```
 
 ### Installation
 
-To enter your build environment, run one of these scripts based on your operating system and
-shell:
-
 - Linux/MacOS:
 
+Linux has a build script made specifically for it, to build, just make sure your docker daemon is running, and run
 ```sh
-docker run --rm -it -v $(pwd):/root/env mangos-buildenv
+chmod +x ./build,sh
+./build.sh
 ```
+
+This will also automatically run qemu.
 
 - Windows(CMD):
 
 ```sh
 docker run --rm -it -v "%cd%":/root/env mangos-buildenv
+
+make iso
 ```
+
 
 - Windows(Powershell):
 
@@ -122,7 +119,7 @@ flash it onto a USB. Then, enter your BIOS and set the USB as your boot drive.
 For QEMU, the only supported virtual machine for now, run
 
 ```sh
-qemu-system-x86_64 -cdrom dist/x86_64/kernel.iso -serial stdio -m 1024
+qemu-system-x86_64 -cdrom dist/x86_64/MangOS.iso -serial stdio -m 1024
 ```
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
@@ -133,16 +130,16 @@ qemu-system-x86_64 -cdrom dist/x86_64/kernel.iso -serial stdio -m 1024
 
 TASKS TO DO
 
-- [✔] - Very basic printf that outputs to serial
-- [✔] - Implement a GDT
-- [✔] - Implement an IDT
-- [✔] - Exception handling (i.e. just make an exception handler that prints when errors occur)
-- [✔] - Basic Log
-- [ ] - Make a Physical Allocator
+- [x] - Very basic printf that outputs to serial
+- [x] - Implement a GDT
+- [x] - Implement an IDT
+- [x] - Exception handling (i.e. just make an exception handler that prints when errors occur)
+- [x] - Basic Log
+- [x] - Make a Physical Allocator
 - [ ] - Make a page allocator (Bitmap, Page list, whichever one you feel like)
 - [ ] - Implement paging using the allocator
 - [ ] - Load the new page table
-- [ ] - REACH GUI MODE
+- [ ] -  TSS
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
