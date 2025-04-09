@@ -4,17 +4,17 @@
 #include "kassert.h"
 
 void disable_interrupts(){
-    asm("cli");
+    asm volatile("cli");
 }
 void enable_interrupts() {
-    asm("sti");
+    asm volatile("sti");
 }
 void wait_for_interrupt() {
-    asm("hlt");
+    asm volatile("hlt");
 }
 void halt() {
     disable_interrupts();
-    while (true)
+    for (;;)
     {
         wait_for_interrupt();
     }
