@@ -1,4 +1,4 @@
-#include "page.h"
+#include "memory/page.h"
 #include "utils.h"
 #include "bootutils.h"
 #include "memory/linked_list.h"
@@ -23,17 +23,14 @@ void map_kernel() {
         uint64_t length = page_align_up((uintptr_t)WRITE_ALLOWED_START - (uintptr_t)KERNEL_START) / PAGE_SIZE;
         uint64_t phys = kernel.phys_addr + ((uintptr_t)KERNEL_START - (uintptr_t)kernel.virt_addr);
 
-        kllog("The kernel's read only section is %p to %p, the length is %d pages. If it isn't 2-4 pages then we got an issue. More debug info: %d, %d", 1, 0, KERNEL_START, WRITE_ALLOWED_START, length, WRITE_ALLOWED_START - KERNEL_START, page_align_up(WRITE_ALLOWED_START - KERNEL_START));
 
-        kllog("Mapping read-only part of the kernel. Physical address %p to virtual address %p, %d pages.", 1, 0, phys, page_align_down((uintptr_t)KERNEL_START), length);
+        kinfo("Mapping read-only part of the kernel. Physical address %p to virtual address %p, %d pages.", phys, page_align_down((uintptr_t)KERNEL_START), length);
         page_mmap(kernel.pml4, phys, page_align_down((uintptr_t)KERNEL_START), length, KERNEL_PFLAG_PRESENT);
 
         length = page_align_up((uintptr_t)KERNEL_END - (uintptr_t)WRITE_ALLOWED_START) / PAGE_SIZE;
         phys = kernel.phys_addr + ((uintptr_t)WRITE_ALLOWED_START - (uintptr_t)kernel.virt_addr);
 
-        kllog("The kernel's writeable section is %p to %p, the length is %d pages. If it isn't 4 - read only pages then we got an issue.", 1, 0, WRITE_ALLOWED_START, KERNEL_END, length);
-
-        kllog("Mapping writeable part of the kernel. Physical address %p to virtual address %p, %d pages.", 1, 0, phys, page_align_down((uintptr_t)WRITE_ALLOWED_START), length);
+        kinfo("Mapping writeable part of the kernel. Physical address %p to virtual address %p, %d pages.", phys, page_align_down((uintptr_t)WRITE_ALLOWED_START), length);
         page_mmap(kernel.pml4, phys, page_align_down((uintptr_t)WRITE_ALLOWED_START), length, KERNEL_PFLAG_PRESENT | KERNEL_PFLAG_WRITE);
 }
 
@@ -59,12 +56,12 @@ void map_all() {
                         break;
                 }
         }
-        kllog("Finished mapping stuff, time to map the kernel.", 1, 0);
+        kinfo("Finished mapping stuff, time to map the kernel.");
         map_kernel();
 }
 
 bool page_mmap(page_t pml4_address, uintptr_t physical_addr, uintptr_t virtual_addr, size_t page_count, pageflags_t flags) {
-        kllog("Mapping pages from %p to %p", 1, 0, virtual_addr, virtual_addr + page_count*PAGE_SIZE);
+        kinfo("Mapping pages from %p to %p", virtual_addr, virtual_addr + page_count*PAGE_SIZE);
         virtual_addr &= ~PAGE_MASK;
 
         uint16_t pml1 = (virtual_addr >> (12   )) & 0x1ff;
@@ -132,7 +129,7 @@ extern uint8_t section_text_end[];
 
 
 void init_paging() {
-        kllog("Initializing page lists", 1, 0);
+        kinfo("Initializing page lists");
         memory_pair addr_resp = {0};
         
         kernel_mempair(&addr_resp);
@@ -145,5 +142,5 @@ void init_paging() {
 
         memset(kernel.pml4, 0, PAGE_SIZE);
         map_all();
-        kllog("Set up paging!!!", 1, 0);
+        kinfo("Set up paging!!!");
 }

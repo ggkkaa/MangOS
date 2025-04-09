@@ -1,6 +1,8 @@
 #include <stdint.h>
 #include <stddef.h>
 
+char* bin_to_str(uint64_t num);
+char* hex_to_str(uint64_t num);
 char* ptr_to_str(void* ptr);
 char* uint32_to_str(uint32_t uint32);
 char* int_to_str(int integer);

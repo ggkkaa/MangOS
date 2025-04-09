@@ -21,10 +21,10 @@
 * SOFTWARE.
 */
 
-#include "./linked_list.h"
-#include "../kernel.h"
+#include "memory/linked_list.h"
+#include "kernel.h"
 #include "print.h"
-#include "../panic.h"
+#include "panic.h"
 #include "limine/limine.h"
 #include "bootutils.h"
 
@@ -41,7 +41,7 @@ extern struct limine_hhdm_request limine_hhdm_request;
 */
 
 void init_list(uintptr_t hhdm_offset) {
-        kllog("hhdm offset: %p", 1, 0, hhdm_offset);
+        kinfo("hhdm offset: %p", hhdm_offset);
         kernel.hhdm = hhdm_offset;
 
         kernel.available_pages = 0;
@@ -49,12 +49,12 @@ void init_list(uintptr_t hhdm_offset) {
 
         BootMemRegion region;
         
-        kllog("%d", 1, 0, boot_get_memregion_count());
+        kinfo("%d", boot_get_memregion_count());
 
         for (size_t i = 0; i < boot_get_memregion_count(); ++i)
         {
             boot_get_memregion_at(&region, i);
-            kllog("Region %d: addr = %p size = %p kind = %d", 1, 0, (int)i, (void*)region.address, (void*)(uintptr_t)region.size, (int)region.kind);
+            kinfo("Region %d: addr = %p size = %p kind = %d", (int)i, (void*)region.address, (void*)(uintptr_t)region.size, (int)region.kind);
 
             if(region.kind == BOOT_MEMREGION_USABLE) {
                 if(region.address < BOOT_HHDM_SIZE) {
@@ -69,12 +69,12 @@ void init_list(uintptr_t hhdm_offset) {
                     node->pages = pages_available - 1;
                     list_append(&node->list, &kernel.memory_list.list);
                 } else {
-                    kllog("Region available but ignored.", 1, 0);
+                    kinfo("Region available but ignored.");
                 }
             }
         }  
 
-        kllog("Finished setting up the list. Now starting test.", 1, 0);
+        kinfo("Finished setting up the list. Now starting test.");
 
         allocator_test();
 }
@@ -94,7 +94,7 @@ paddr_t alloc_phys_page() {
     }
     if(node->list.next == NULL) kpanic("Hey. It was NULL");
     list_remove(&node->list);
-    return (paddr_t)(result - limine_hhdm_request.response->offset);
+    return (paddr_t)result - (paddr_t)limine_hhdm_request.response->offset;
 }
 
 // Allocates multiple physical pages
@@ -142,24 +142,24 @@ void free_phys_pages(paddr_t page, size_t count) {
 */
 
 void allocator_test() {
-        bool success = true;
-        uint8_t* test_int = (uint8_t*)((long long unsigned int)alloc_phys_pages(1) | KERNEL_MEMORY_MASK);
-        if(!test_int) kpanic("Test int is null.");
-        kllog("Address of the test int is %p", 1, 0, test_int);
+    bool success = true;
+    uint8_t* test_int = (uint8_t*)((long long unsigned int)alloc_phys_pages(1) | KERNEL_MEMORY_MASK);
+    if(!test_int) kpanic("Test int is null.");
+    kinfo("Address of the test int is %p", test_int);
     *test_int = 69;
     
-    kllog("testing integer, should be 69: %d", 1, 0, *test_int);
+    kinfo("testing integer, should be 69: %d", *test_int);
 
     for (size_t i = 0; i < PAGE_SIZE; i++) {
         test_int[i] = (uint8_t)(i & 0xFF);
     }
 
-    kllog("Pattern filled.", 1, 0);
+    kinfo("Pattern filled.");
 
     for (size_t i = 0; i < PAGE_SIZE; i++) {
         if (test_int[i] != (uint16_t)(i & 0xFF)) {
             success = false;
-            kllog("Memory test failed at byte %p: Expected %d, got %d", 1, 4, i + test_int, (uint16_t)(i & 0xFF), test_int[i]);
+            kerror("Memory test failed at byte %p: Expected %d, got %d", i + test_int, (uint16_t)(i & 0xFF), test_int[i]);
             break;
         }
     }
@@ -167,13 +167,12 @@ void allocator_test() {
     free_phys_pages((paddr_t)(test_int - limine_hhdm_request.response->offset), 1);
 
     if(success == false) {
-        kllog("Error! Memory allocation test failed!!!", 1, 2);
-        kpanic("Single Page Allocation Failed");
+        kpanic("Single Page Allocation Test Failed");
     } else {
-        kllog("Single page physical allocation test finished.", 1, 0);
+        kinfo("Single page physical allocation test finished.");
     }
 
-    kllog("Multi page physical allocation test starting...", 1, 0);
+    kinfo("Multi page physical allocation test starting...");
 
     test_int = (uint8_t*)((long long unsigned int)alloc_phys_pages(TEST_ALLOC_SIZE) | KERNEL_MEMORY_MASK);
 
@@ -185,13 +184,13 @@ void allocator_test() {
 
     for (size_t i = 0; i < TEST_ALLOC_SIZE; i++) {
         if (test_int[i] != (uint16_t)(i & 0xFF)) {
-            kllog("Multi-page test failed you're dumb", 1, 2);
+            kerror("Multi-page test failed");
             return;
         }
     }
 
     free_phys_pages((paddr_t)(test_int - limine_hhdm_request.response->offset), TEST_ALLOC_SIZE);
 
-    kllog("test passed!", 1, 0);
+    kinfo("test passed!");
 
 }

@@ -115,6 +115,12 @@ void v_k_serial_printf(const char* string, va_list args) {
             case 'p':
                 serial_write_str(ptr_to_str(va_arg(args, void*)));
                 break;
+            case 'x':
+                serial_write_str(hex_to_str(va_arg(args, uint64_t)));
+                break;
+            case 'b':
+                serial_write_str(bin_to_str(va_arg(args, uint64_t)));
+                break;
             default:
                 break;
             }
@@ -124,24 +130,24 @@ void v_k_serial_printf(const char* string, va_list args) {
     }
 }
 
-void kllog(const char* string, uint8_t end_line, uint32_t log_type, ...) {
+void kllog(enum LOG_TYPE log_type, const char* string, ...) {
     va_list args;
-    va_start(args, log_type);
+    va_start(args, string);
     switch (log_type)
     {
-    case 0:
+    case LOG_INFO:
         k_serial_printf("[INFO]          ");
         break;
-    case 1:
+    case LOG_WARNING:
         k_serial_printf("\033[33m[WARNING]       ");
         break;
-    case 2:
+    case LOG_ERROR:
         k_serial_printf("\033[31m[ERROR]         ");
         break;
-    case 3:
+    case LOG_PANIC:
         k_serial_printf("\033[1;31m[KERNEL PANIC]         ");
         break;
-    case 4:
+    case LOG_TRACE:
         k_serial_printf("\033[1;31m[STACK TRACE]         ");
         break;
     default:
@@ -149,19 +155,7 @@ void kllog(const char* string, uint8_t end_line, uint32_t log_type, ...) {
     }
 
     v_k_serial_printf(string, args);
-    k_serial_printf("\033[0m");
-    
-    switch (end_line)
-    {
-    case 0:
-        break;
-    case 1:
-        k_serial_printf("\n");
-        break;
-    default:
-        k_serial_printf("\n");
-        break;
-    }
+    k_serial_printf("\033[0m\n");
 
     va_end(args);
 }

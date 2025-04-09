@@ -1,6 +1,6 @@
 #pragma once
 #include <stdint.h>
-#include "../../../memory/linked_list.h"
+#include "memory/linked_list.h"
 
 enum {
     BOOT_MEMREGION_USABLE,

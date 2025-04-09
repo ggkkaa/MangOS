@@ -1,7 +1,7 @@
-#include "../x86_64/include/gdt.h"
-#include "../x86_64/include/idt.h"
-#include "./memory/linked_list.h"
-#include "page.h"
+#include "x86_64/gdt.h"
+#include "x86_64/idt.h"
+#include "memory/linked_list.h"
+#include "memory/page.h"
 #include "limine/limine.h"
 
 #define REGION_USER_STACK_ADDR  0x0000700000000000LL

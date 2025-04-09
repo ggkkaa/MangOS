@@ -1,7 +1,7 @@
 // THIS HAS BEEN COPIED FROM https://github.com/Dcraftbg/MinOS BECAUSE I'M WAY TOO LAZY TO MAKE THIS BY MYSELF
 #pragma once
 #include "print.h"
-#include "../../../panic.h"
+#include "panic.h"
 #define STRINGIFY2(x) #x
 #define STRINGIFY(x) STRINGIFY2(x)
 #define assert(x) \

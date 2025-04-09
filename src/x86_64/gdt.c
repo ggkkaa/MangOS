@@ -1,6 +1,6 @@
-#include "gdt.h"
+#include "x86_64/gdt.h"
 #include "print.h"
-#include "../../kernel/kernel.h"
+#include "kernel.h"
 
 uint64_t GDT[6];
 
@@ -41,13 +41,13 @@ void create_system_segment_descriptor(uint64_t *GDT, uint8_t idx, uint64_t base,
 
 __attribute__((noinline))
 void init_GDT() {
-    kllog("Initiating GDT... ", 1, 0);
+    kinfo("Initializing GDT... ");
     GDT[0] = create_gdt_entry(0, 0, 0, 0); // null
     GDT[1] = create_gdt_entry(0, 0, 0x9A, 0x2); // kernel code
     GDT[2] = create_gdt_entry(0, 0, 0x92, 0); // kernel data
     GDT[3] = create_gdt_entry(0, 0, 0xFA, 0x2); // user code
     GDT[4] = create_gdt_entry(0, 0, 0xF2, 0); // user data
-    kllog("GDT entries created", 1, 0);
+    kinfo("GDT entries created");
     kernel.gdtr.size   = sizeof(GDT) - 1;
     kernel.gdtr.offset = (uint64_t) GDT;
     asm("lgdt (%0)" : : "r" (&kernel.gdtr));  
@@ -62,5 +62,5 @@ void init_GDT() {
               mov %%ax, %%fs; \
               mov %%ax, %%gs; \
               mov %%ax, %%ss" : : : "eax", "rax");
-    kllog("GDT has fully initialized", 1, 0);
+    kinfo("GDT has initialized.");
 }

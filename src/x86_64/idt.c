@@ -1,5 +1,5 @@
-#include "idt.h"
-#include "../../kernel/kernel.h"
+#include "x86_64/idt.h"
+#include "kernel.h"
 #include "print.h"
 
 void create_IDT_entry(uint32_t vector, void* isr, uint8_t flags, struct IDT_entry *IDT) {
@@ -38,7 +38,7 @@ extern void security_exception();
 struct IDT_entry IDT[256];
 
 void init_IDT() {
-    kllog("Initializing the IDT!", 1, 0);
+    kinfo("Initializing the IDT!");
     create_IDT_entry(0, &division_exception, 0x8E, IDT);
     create_IDT_entry(1, &debug_exception, 0x8E, IDT);
     create_IDT_entry(3, &breakpoint_exception, 0x8E, IDT);
@@ -62,9 +62,9 @@ void init_IDT() {
     create_IDT_entry(28, &hypervisor_injection_exception, 0x8E, IDT);
     create_IDT_entry(29, &VMM_communication_exception, 0x8E, IDT);
     create_IDT_entry(30, &security_exception, 0x8E, IDT);
-    kllog("IDT entries created!", 1, 0);
+    kinfo("IDT entries created!");
     kernel.idtr.size = (sizeof(struct IDT_entry) * 256) - 1;
     kernel.idtr.offset = (uint64_t) IDT;
     asm("lidt %0" : : "m" (kernel.idtr));
-    kllog("IDT has been created.", 1, 0);
+    kinfo("IDT has been created.");
 }

@@ -1,4 +1,4 @@
-#include "../../kernel.h"
+#include "kernel.h"
 #include "utils.h"
 #include "limine/limine.h"
 #include "kassert.h"

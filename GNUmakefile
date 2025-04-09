@@ -37,9 +37,7 @@ override CFLAGS += \
 	-mcmodel=kernel
 
 override CPPFLAGS := \
-	-I src \
-	-I src/impl/kernel/modules/utilities/include \
-	-I src/impl/x86_64/include \
+	-I include \
 	$(CPPFLAGS) \
 	-DLIMINE_API_REVISION=3 \
 	-MMD \

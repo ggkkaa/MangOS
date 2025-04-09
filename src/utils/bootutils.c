@@ -1,6 +1,6 @@
 #include "limine/limine.h"
 #include "bootutils.h"
-#include "../../../panic.h"
+#include "panic.h"
 
 __attribute__((used, section(".limine_requests")))
 volatile struct limine_memmap_request limine_memmap_request = {

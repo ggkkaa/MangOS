@@ -61,18 +61,29 @@ This is a simple OS made by myself to train my C skills.
 
 ### Requirements
 
-- Docker
+- Docker(On Windows)
 
-- apt
+- qemu(x86_64)
 
-- qemu
+- GCC
 
+- NASM
+
+- xorriso
+
+- Make
+
+To install the dependencies on Linux, run
+
+```sh
+sudo apt install build-essential nasm xorriso qemu qemu-system-x86
+```
 
 ### Installation
 
 - Linux/MacOS:
 
-Linux has a build script made specifically for it, to build, just make sure your docker daemon is running, and run
+Linux has a build script made specifically for it, to build.
 ```sh
 chmod +x ./build,sh
 ./build.sh

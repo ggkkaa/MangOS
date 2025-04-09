@@ -26,12 +26,12 @@
 #include "strconvert.h"
 #include "kernel.h"
 #include "utils.h"
-#include "./memory/linked_list.h"
+#include "memory/linked_list.h"
 #include "limine/limine.h"
-#include "page.h"
+#include "memory/page.h"
 
 __attribute__((used, section(".limine_requests")))
-static volatile LIMINE_BASE_REVISION(3);
+static volatile LIMINE_BASE_REVISION(3)
 
 __attribute__((used, section(".limine_requests")))
 static volatile struct limine_framebuffer_request framebuffer_request = {
@@ -52,36 +52,10 @@ volatile struct limine_executable_address_request limine_kernel_addr_request = {
 };
 
 __attribute__((used, section(".limine_requests_start")))
-static volatile LIMINE_REQUESTS_START_MARKER;
+static volatile LIMINE_REQUESTS_START_MARKER
 
 __attribute__((used, section(".limine_requests_end")))
-static volatile LIMINE_REQUESTS_END_MARKER;
-
-/*
-const char* tag_type_map[] = {
-    [MULTIBOOT_TAG_TYPE_END             ] = "MULTIBOOT_TAG_TYPE_END",
-    [MULTIBOOT_TAG_TYPE_CMDLINE         ] = "MULTIBOOT_TAG_TYPE_CMDLINE", 
-    [MULTIBOOT_TAG_TYPE_BOOT_LOADER_NAME] = "MULTIBOOT_TAG_TYPE_BOOT_LOADER_NAME",
-    [MULTIBOOT_TAG_TYPE_MODULE          ] = "MULTIBOOT_TAG_TYPE_MODULE",
-    [MULTIBOOT_TAG_TYPE_BASIC_MEMINFO   ] = "MULTIBOOT_TAG_TYPE_BASIC_MEMINFO",
-    [MULTIBOOT_TAG_TYPE_BOOTDEV         ] = "MULTIBOOT_TAG_TYPE_BOOTDEV", 
-    [MULTIBOOT_TAG_TYPE_MMAP            ] = "MULTIBOOT_TAG_TYPE_MMAP",       
-    [MULTIBOOT_TAG_TYPE_VBE             ] = "MULTIBOOT_TAG_TYPE_VBE",          
-    [MULTIBOOT_TAG_TYPE_FRAMEBUFFER     ] = "MULTIBOOT_TAG_TYPE_FRAMEBUFFER",
-    [MULTIBOOT_TAG_TYPE_ELF_SECTIONS    ] = "MULTIBOOT_TAG_TYPE_ELF_SECTIONS",   
-    [MULTIBOOT_TAG_TYPE_APM             ] = "MULTIBOOT_TAG_TYPE_APM",  
-    [MULTIBOOT_TAG_TYPE_EFI32           ] = "MULTIBOOT_TAG_TYPE_EFI32",           
-    [MULTIBOOT_TAG_TYPE_EFI64           ] = "MULTIBOOT_TAG_TYPE_EFI64",           
-    [MULTIBOOT_TAG_TYPE_SMBIOS          ] = "MULTIBOOT_TAG_TYPE_SMBIOS",          
-    [MULTIBOOT_TAG_TYPE_ACPI_OLD        ] = "MULTIBOOT_TAG_TYPE_ACPI_OLD",        
-    [MULTIBOOT_TAG_TYPE_ACPI_NEW        ] = "MULTIBOOT_TAG_TYPE_ACPI_NEW",        
-    [MULTIBOOT_TAG_TYPE_NETWORK         ] = "MULTIBOOT_TAG_TYPE_NETWORK",         
-    [MULTIBOOT_TAG_TYPE_EFI_MMAP        ] = "MULTIBOOT_TAG_TYPE_EFI_MMAP",        
-    [MULTIBOOT_TAG_TYPE_EFI_BS          ] = "MULTIBOOT_TAG_TYPE_EFI_BS",          
-    [MULTIBOOT_TAG_TYPE_EFI32_IH        ] = "MULTIBOOT_TAG_TYPE_EFI32_IH",        
-    [MULTIBOOT_TAG_TYPE_EFI64_IH        ] = "MULTIBOOT_TAG_TYPE_EFI64_IH",        
-    [MULTIBOOT_TAG_TYPE_LOAD_BASE_ADDR  ] = "MULTIBOOT_TAG_TYPE_LOAD_BASE_ADDR",
-};*/
+static volatile LIMINE_REQUESTS_END_MARKER
 
 Kernel kernel = {0};
 
@@ -93,21 +67,21 @@ void kernel_main() {
         halt();
     }
 
-    kllog("Disabling interrupts.", 1, 0);
+    kinfo("Disabling interrupts.");
     disable_interrupts();
-    kllog("Initializing GDT", 1, 0);
+    kinfo("Initializing GDT");
     init_GDT(); 
-    kllog("GDT Initialized", 1, 0);
-    kllog("Initializing IDT", 1, 0);
+    kinfo("GDT Initialized");
+    kinfo("Initializing IDT");
     init_IDT(); 
-    kllog("IDT Initialized", 1, 0); 
+    kinfo("IDT Initialized"); 
 
     uintptr_t hhdm = limine_hhdm_request.response->offset;
         kernel.phys_addr = limine_kernel_addr_request.response->physical_base;
         kernel.virt_addr = (void*)limine_kernel_addr_request.response->virtual_base;
-    kllog("hhdm offset: %p", 1, 0, hhdm);
+    kinfo("hhdm offset: %p", hhdm);
 
-    kllog("Finding framebuffer...", 1, 0);
+    kinfo("Finding framebuffer...");
 
     if (framebuffer_request.response == NULL || framebuffer_request.response->framebuffer_count < 1) {
         kpanic("Error! Framebuffer not found!");
@@ -117,7 +91,7 @@ void kernel_main() {
     struct limine_framebuffer *framebuffer = framebuffer_request.response->framebuffers[0];
     volatile uint32_t *fb_ptr = framebuffer->address;
 
-    kllog("Framebuffer found!", 1, 0);
+    kinfo("Framebuffer found!");
 
     for (size_t i = 0; i < 100; i++) {
         fb_ptr[i * (framebuffer->pitch / 4) + i] = 0x3ae3fe;
@@ -125,7 +99,7 @@ void kernel_main() {
     
 
     init_list(hhdm);
-    kllog("PList has been initialized", 1, 0);
+    kinfo("PList has been initialized");
     init_paging();
 
     asm volatile(\
@@ -134,7 +108,7 @@ void kernel_main() {
             : "r" ((uintptr_t)kernel.pml4 - kernel.hhdm)
     );
 
-    kllog("We have paging!", 1, 0);
+    kinfo("We have paging");
 
     halt();
 
