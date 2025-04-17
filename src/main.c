@@ -51,6 +51,12 @@ volatile struct limine_executable_address_request limine_kernel_addr_request = {
     .revision = 0
 };
 
+__attribute__((used, section(".limine_requests")))
+volatile struct limine_stack_size_request limine_stack_size_request = {
+    .id = LIMINE_STACK_SIZE_REQUEST,
+    .revision = 0
+};
+
 __attribute__((used, section(".limine_requests_start")))
 static volatile LIMINE_REQUESTS_START_MARKER
 
@@ -59,13 +65,15 @@ static volatile LIMINE_REQUESTS_END_MARKER
 
 Kernel kernel = {0};
 
-void kernel_main() {
+void kernel_main(void* rsp) {
     init_serial();
 
     if(LIMINE_BASE_REVISION_SUPPORTED == false) {
         kpanic("This limine base revision is not supported.");
         halt();
     }
+
+    kinfo("Limine stack is at %p", rsp);
 
     kinfo("Disabling interrupts.");
     disable_interrupts();
@@ -102,11 +110,19 @@ void kernel_main() {
     kinfo("PList has been initialized");
     init_paging();
 
+    uint16_t stack_size = (limine_stack_size_request.stack_size < KERNEL_STACK_PAGES * PAGE_SIZE) ? limine_stack_size_request.stack_size : KERNEL_STACK_PAGES;
+
     asm volatile(\
             "mov %0, %%cr3\n"\
+            "mov %1, %%rsp\n"\
+            "mov $0, %%rbp\n"\
             :\
-            : "r" ((uintptr_t)kernel.pml4 - kernel.hhdm)
+            : "r" ((uintptr_t)kernel.pml4 - kernel.hhdm),\
+              "r" (KERNEL_STACK_PTR - stack_size)
     );
+
+    memcpy((void*)KERNEL_STACK_ADDR, rsp, stack_size);
+
 
     kinfo("We have paging");
 
