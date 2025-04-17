@@ -3,23 +3,10 @@
 #include "limine/limine.h"
 #include "kassert.h"
 
-void disable_interrupts(){
-    asm volatile("cli");
-}
 void enable_interrupts() {
     asm volatile("sti");
 }
-void wait_for_interrupt() {
-    asm volatile("hlt");
-}
-void halt() {
-    disable_interrupts();
-    for (;;)
-    {
-        wait_for_interrupt();
-    }
-    
-}
+
 
 size_t str_len(const char* str) {
     size_t length = 0;
