@@ -32,6 +32,9 @@ void map_kernel() {
 
         kinfo("Mapping writeable part of the kernel. Physical address %p to virtual address %p, %d pages.", phys, page_align_down((uintptr_t)WRITE_ALLOWED_START), length);
         page_mmap(kernel.pml4, phys, page_align_down((uintptr_t)WRITE_ALLOWED_START), length, KERNEL_PFLAG_PRESENT | KERNEL_PFLAG_WRITE);
+
+        kinfo("Mapping %p to %p for the kernel stack.", KERNEL_STACK_ADDR, KERNEL_STACK_PTR);
+        alloc_pages(kernel.pml4, KERNEL_STACK_ADDR, KERNEL_STACK_PAGES, KERNEL_PFLAG_PRESENT | KERNEL_PFLAG_WRITE);
 }
 
 void map_all() {
@@ -110,6 +113,72 @@ bool page_mmap(page_t pml4_address, uintptr_t physical_addr, uintptr_t virtual_a
                 
                                 for (; pml1 < PAGE_ENTRIES; pml1++)
                                 {
+                                        pml1_address[pml1] = physical_addr | flags;
+                                        page_count--;
+                                        physical_addr += PAGE_SIZE;
+                                        if(page_count == 0) return true;
+                                }
+                                pml1 = 0;
+                        }
+                        pml2 = 0;
+                }
+                pml3 = 0;
+        }
+        return page_count == 0;
+}
+
+bool alloc_pages(page_t pml4_address, uintptr_t virtual_addr, size_t page_count, pageflags_t flags) {
+        kinfo("Allocating %d page(s) at %p", page_count, virtual_addr);
+        virtual_addr &= ~PAGE_MASK;
+
+        uint16_t pml1 = (virtual_addr >> (12   )) & 0x1ff;
+        uint16_t pml2 = (virtual_addr >> (12+9 )) & 0x1ff;
+        uint16_t pml3 = (virtual_addr >> (12+18)) & 0x1ff;
+        uint16_t pml4 = (virtual_addr >> (12+27)) & 0x1ff;
+
+        for (; pml4 < PAGE_ENTRIES; pml4++)
+        {
+                page_t pml3_address = NULL;
+                if(pml4_address[pml4] == 0) {
+                        pml4_address[pml4] = alloc_phys_pages(1);
+                        if(!pml4_address[pml4]) return false;
+                        pml3_address = (page_t)(pml4_address[pml4] + kernel.hhdm);
+                        memset(pml3_address, 0, PAGE_SIZE);
+                        pml4_address[pml4] |= KERNEL_PFLAG_WRITE | KERNEL_PFLAG_PRESENT | (flags & KERNEL_PFLAG_USER);
+                } else {
+                        pml3_address = (page_t)page_align_down(pml4_address[pml4] + kernel.hhdm);
+                }
+
+                for (; pml3 < PAGE_ENTRIES; pml3++)
+                {
+                        page_t pml2_address = NULL;
+                        if(pml3_address[pml3] == 0) {
+                                pml3_address[pml3] = alloc_phys_pages(1);
+                                if(!pml3_address[pml3]) return false;
+                                pml2_address = (page_t)(pml3_address[pml3] + kernel.hhdm);
+                                memset(pml2_address, 0, PAGE_SIZE);
+                                pml3_address[pml3] |= KERNEL_PFLAG_WRITE | KERNEL_PFLAG_PRESENT | (flags & KERNEL_PFLAG_USER);
+                        } else {
+                                pml2_address = (page_t)page_align_down(pml3_address[pml3] + kernel.hhdm);
+                        }
+        
+                        for (; pml2 < PAGE_ENTRIES; pml2++)
+                        {
+                                page_t pml1_address = NULL;
+                                if(pml2_address[pml2] == 0) {
+                                        pml2_address[pml2] = alloc_phys_pages(1);
+                                        if(!pml2_address[pml2]) return false;
+                                        pml1_address = (page_t)(pml2_address[pml2] + kernel.hhdm);
+                                        memset(pml1_address, 0, PAGE_SIZE);
+                                        pml2_address[pml2] |= KERNEL_PFLAG_WRITE | KERNEL_PFLAG_PRESENT | (flags & KERNEL_PFLAG_USER);
+                                } else {
+                                        pml1_address = (page_t)page_align_down(pml2_address[pml2] + kernel.hhdm);
+                                }
+                
+                                for (; pml1 < PAGE_ENTRIES; pml1++)
+                                {
+                                        paddr_t physical_addr = alloc_phys_pages(1);
+                                        memset((uint8_t*)(physical_addr + kernel.hhdm), 0, PAGE_SIZE);
                                         pml1_address[pml1] = physical_addr | flags;
                                         page_count--;
                                         physical_addr += PAGE_SIZE;
