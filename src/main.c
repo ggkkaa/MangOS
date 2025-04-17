@@ -29,15 +29,10 @@
 #include "memory/linked_list.h"
 #include "limine/limine.h"
 #include "memory/page.h"
+#include "drivers/framebuffer.h"
 
 __attribute__((used, section(".limine_requests")))
 static volatile LIMINE_BASE_REVISION(3)
-
-__attribute__((used, section(".limine_requests")))
-static volatile struct limine_framebuffer_request framebuffer_request = {
-    .id = LIMINE_FRAMEBUFFER_REQUEST,
-    .revision = 0
-};
 
 __attribute__((used, section(".limine_requests")))
 volatile struct limine_hhdm_request limine_hhdm_request = {
@@ -65,15 +60,13 @@ static volatile LIMINE_REQUESTS_END_MARKER
 
 Kernel kernel = {0};
 
-void kernel_main(void* rsp) {
+void kernel_main() {
     init_serial();
 
     if(LIMINE_BASE_REVISION_SUPPORTED == false) {
         kpanic("This limine base revision is not supported.");
         halt();
     }
-
-    kinfo("Limine stack is at %p", rsp);
 
     kinfo("Disabling interrupts.");
     disable_interrupts();
@@ -89,42 +82,22 @@ void kernel_main(void* rsp) {
         kernel.virt_addr = (void*)limine_kernel_addr_request.response->virtual_base;
     kinfo("hhdm offset: %p", hhdm);
 
-    kinfo("Finding framebuffer...");
-
-    if (framebuffer_request.response == NULL || framebuffer_request.response->framebuffer_count < 1) {
-        kpanic("Error! Framebuffer not found!");
-        halt();
-    }
-
-    struct limine_framebuffer *framebuffer = framebuffer_request.response->framebuffers[0];
-    volatile uint32_t *fb_ptr = framebuffer->address;
-
-    kinfo("Framebuffer found!");
-
-    for (size_t i = 0; i < 100; i++) {
-        fb_ptr[i * (framebuffer->pitch / 4) + i] = 0x3ae3fe;
-    }
-    
-
     init_list(hhdm);
     kinfo("PList has been initialized");
     init_paging();
-
-    uint16_t stack_size = (limine_stack_size_request.stack_size < KERNEL_STACK_PAGES * PAGE_SIZE) ? limine_stack_size_request.stack_size : KERNEL_STACK_PAGES;
-
+    
     asm volatile(\
             "mov %0, %%cr3\n"\
-            "mov %1, %%rsp\n"\
-            "mov $0, %%rbp\n"\
             :\
-            : "r" ((uintptr_t)kernel.pml4 - kernel.hhdm),\
-              "r" (KERNEL_STACK_PTR - stack_size)
+            : "r" ((uintptr_t)kernel.pml4 - kernel.hhdm)
     );
-
-    memcpy((void*)KERNEL_STACK_ADDR, rsp, stack_size);
 
 
     kinfo("We have paging");
+
+    init_framebuffer();
+
+    //draw_char('a', 3, 4);
 
     halt();
 

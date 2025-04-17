@@ -32,9 +32,6 @@ void map_kernel() {
 
         kinfo("Mapping writeable part of the kernel. Physical address %p to virtual address %p, %d pages.", phys, page_align_down((uintptr_t)WRITE_ALLOWED_START), length);
         page_mmap(kernel.pml4, phys, page_align_down((uintptr_t)WRITE_ALLOWED_START), length, KERNEL_PFLAG_PRESENT | KERNEL_PFLAG_WRITE);
-
-        kinfo("Mapping %p to %p for the kernel stack.", KERNEL_STACK_ADDR, KERNEL_STACK_PTR);
-        alloc_pages(kernel.pml4, KERNEL_STACK_ADDR, KERNEL_STACK_PAGES, KERNEL_PFLAG_PRESENT | KERNEL_PFLAG_WRITE);
 }
 
 void map_all() {

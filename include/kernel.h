@@ -3,6 +3,7 @@
 #include "memory/linked_list.h"
 #include "memory/page.h"
 #include "limine/limine.h"
+#include "drivers/framebuffer.h"
 
 #define REGION_USER_STACK_ADDR  0x0000700000000000LL
 #define REGION_USER_STACK_PAGES 6
@@ -20,6 +21,7 @@ typedef struct
     struct mem_list memory_list;
     struct GDTR gdtr;
     struct IDTR idtr;
+    Framebuffer framebuffer;
     uint64_t available_pages;
     char* kernel_start;
     char* kernel_end;
