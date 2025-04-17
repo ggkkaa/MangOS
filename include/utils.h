@@ -15,13 +15,19 @@ typedef struct
 } memory_pair;
 
 
-void disable_interrupts();
 void enable_interrupts();
-void wait_for_interrupt();
-void halt();
 size_t str_len(const char* str);
 void *memcpy(void *dest, const void *src, size_t size);
 void *memset(void *pointer, int val, size_t size);
 void *memmove(void *dest, const void *src, size_t size);
 int memcmp(const void *pointer1, const void *pointer2, size_t size);
 void kernel_mempair(memory_pair* mempair);    
+
+#define disable_interrupts() asm volatile("cli")
+#define wait_for_interrupt() asm volatile("hlt")
+
+#define halt() \
+    disable_interrupts(); \
+    for (;;) { \
+        wait_for_interrupt(); \
+    }
