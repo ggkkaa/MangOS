@@ -63,7 +63,7 @@ void map_all() {
         map_kernel();
 }
 
-bool page_mmap(page_t pml4_address, uintptr_t physical_addr, uintptr_t virtual_addr, size_t page_count, pageflags_t flags) {
+bool page_mmap(page_t pml4_address, paddr_t physical_addr, uintptr_t virtual_addr, size_t page_count, pageflags_t flags) {
         kinfo("Mapping pages from %p to %p", virtual_addr, virtual_addr + page_count*PAGE_SIZE);
         virtual_addr &= ~PAGE_MASK;
 
