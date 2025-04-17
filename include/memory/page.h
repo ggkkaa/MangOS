@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include "utils.h"
 
 typedef uint64_t *page_t;
@@ -32,4 +33,5 @@ typedef uint64_t pageflags_t;
 #define PHYS_MEM_RESERVE_SIZE (4LLU * 1024LLU * 1024LLU * 1024LLU) 
 
 void init_paging();
-_Bool page_mmap(page_t pml4_address, uintptr_t physical_addr, uintptr_t virtual_addr, size_t page_count, pageflags_t flags);
+bool page_mmap(page_t pml4_address, uintptr_t physical_addr, uintptr_t virtual_addr, size_t page_count, pageflags_t flags);
+bool alloc_pages(page_t pml4_address, uintptr_t virtual_addr, size_t page_count, pageflags_t flags);
