@@ -5,7 +5,7 @@ dist/
 *.iso
 *.log
 obj/
-limine/
+./limine/
 build/
 build/*
 targets/x86_64/iso/boot/mangOS
