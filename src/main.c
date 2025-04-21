@@ -157,7 +157,12 @@ void kernel_main() {
 
     init_framebuffer();
 
-    //draw_char('a', 3, 4);
+    draw_char('M', 0, 0);
+    draw_char('a', 8, 0);
+    draw_char('n', 16, 0);
+    draw_char('g', 24, 0);
+    draw_char('O', 32, 0);
+    draw_char('S', 40, 0);
 
 >>>>>>> 4782054 (stuff)
     halt();
