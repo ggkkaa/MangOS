@@ -38,6 +38,15 @@ void draw_char(char ch, uint64_t x_coord, uint64_t y_coord) {
     }
 }
 
+void print_char(char ch) {
+    draw_char(ch, kernel.cursor.x, kernel.cursor.y);
+    kernel.cursor.x += 8;
+    if (kernel.cursor.x > kernel.framebuffer.width) {
+        kernel.cursor.x = 0;
+        kernel.cursor.y += 16;
+    }
+}
+
 void init_framebuffer() {
     if(!limine_framebuffer_request.response) {
         kpanic("Error! No framebuffer found!");

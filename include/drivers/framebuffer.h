@@ -19,4 +19,4 @@ typedef struct
 
 
 void init_framebuffer();
-void draw_char(char ch, uint64_t x_coord, uint64_t y_coord);
+void print_char(char ch);

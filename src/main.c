@@ -99,12 +99,12 @@ void kernel_main(void* rsp) {
 
     init_framebuffer();
 
-    draw_char('M', 0, 0);
-    draw_char('a', 8, 0);
-    draw_char('n', 16, 0);
-    draw_char('g', 24, 0);
-    draw_char('O', 32, 0);
-    draw_char('S', 40, 0);
+    print_char('M');
+    print_char('a');
+    print_char('n');
+    print_char('g');
+    print_char('O');
+    print_char('S');
 
     halt();
 
