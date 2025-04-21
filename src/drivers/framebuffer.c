@@ -1,0 +1,54 @@
+#include "drivers/framebuffer.h"
+#include "limine/limine.h"
+#include "panic.h"
+#include "kernel.h"
+#include "print.h"
+#include "memory/page.h"
+#include "memory/linked_list.h"
+
+#define BG_COLOUR 0x22262e
+
+__attribute__((used, section(".limine_requests")))
+static volatile struct limine_framebuffer_request limine_framebuffer_request = {
+    .id = LIMINE_FRAMEBUFFER_REQUEST,
+    .revision = 0
+};
+
+
+void init_framebuffer() {
+    if(!limine_framebuffer_request.response) {
+        kpanic("Error! No framebuffer found!");
+    }
+
+    Framebuffer fb = {
+        .addr = (*limine_framebuffer_request.response->framebuffers)->address,
+        .width = (*limine_framebuffer_request.response->framebuffers)->width,
+        .height = (*limine_framebuffer_request.response->framebuffers)->height,
+        .pitch = (*limine_framebuffer_request.response->framebuffers)->pitch,
+        .bytes_per_pixel = (*limine_framebuffer_request.response->framebuffers)->bpp / 8,
+    };
+
+    kernel.framebuffer = fb;
+
+    size_t framebuffer_size = (size_t)((page_align_up(kernel.framebuffer.height * kernel.framebuffer.pitch)) / PAGE_SIZE);
+
+    page_mmap(kernel.pml4, (paddr_t)kernel.framebuffer.addr - kernel.hhdm, (uintptr_t)kernel.framebuffer.addr, framebuffer_size, KERNEL_PFLAG_PRESENT | KERNEL_PFLAG_WRITE);
+}
+
+void draw_pixel(uint64_t x, uint64_t y, uint32_t color) {
+    uint32_t *location = (uint32_t*)(((uint8_t*) kernel.framebuffer.addr) + y * kernel.framebuffer.pitch);
+    location[x] = color;
+}
+
+void draw_char(char ch, uint64_t x_coord, uint64_t y_coord) {
+    uint64_t index = ch * 16;
+    kinfo("%d", index);
+
+    // 16 pixel wide character
+    for(size_t y = 0; y < 16; y++) {
+        // 8 pixel high character
+        for(size_t x = 0; x < 8; x++) {
+            draw_pixel(x_coord + x, y_coord + y, 0xffffff);
+        }
+    }
+}
