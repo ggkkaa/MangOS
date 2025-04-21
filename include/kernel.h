@@ -23,6 +23,7 @@ typedef struct
     struct GDTR gdtr;
     struct IDTR idtr;
     Framebuffer framebuffer;
+    Cursor cursor;
     uint64_t available_pages;
     char* kernel_start;
     char* kernel_end;
