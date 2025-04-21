@@ -5,8 +5,10 @@
 #include "print.h"
 #include "memory/page.h"
 #include "memory/linked_list.h"
+#include "font.h"
 
-#define BG_COLOUR 0x22262e
+#define BACKGROUND_COLOUR 0x222630
+#define FOREGROUND_COLOUR 0xd7dae0
 
 __attribute__((used, section(".limine_requests")))
 static volatile struct limine_framebuffer_request limine_framebuffer_request = {
@@ -14,6 +16,27 @@ static volatile struct limine_framebuffer_request limine_framebuffer_request = {
     .revision = 0
 };
 
+void draw_pixel(uint64_t x, uint64_t y, uint32_t color) {
+    uint32_t *location = (uint32_t*)(((uint8_t*) kernel.framebuffer.addr) + y * kernel.framebuffer.pitch);
+    location[x] = color;
+}
+
+void draw_char(char ch, uint64_t x_coord, uint64_t y_coord) {
+    uint64_t index = ch * 16;
+
+    // 16 pixel wide character
+    for(size_t y = 0; y < 16; y++) {
+        // 8 pixel high character
+        for(size_t x = 0; x < 8; x++) {
+            if ((font[index + y] >> (7 - x)) & 1) {
+                draw_pixel(x_coord + x, y_coord + y, FOREGROUND_COLOUR);
+            } else {
+                draw_pixel(x_coord + x, y_coord + y, BACKGROUND_COLOUR);
+            }
+
+        }
+    }
+}
 
 void init_framebuffer() {
     if(!limine_framebuffer_request.response) {
@@ -33,22 +56,10 @@ void init_framebuffer() {
     size_t framebuffer_size = (size_t)((page_align_up(kernel.framebuffer.height * kernel.framebuffer.pitch)) / PAGE_SIZE);
 
     page_mmap(kernel.pml4, (paddr_t)kernel.framebuffer.addr - kernel.hhdm, (uintptr_t)kernel.framebuffer.addr, framebuffer_size, KERNEL_PFLAG_PRESENT | KERNEL_PFLAG_WRITE);
-}
 
-void draw_pixel(uint64_t x, uint64_t y, uint32_t color) {
-    uint32_t *location = (uint32_t*)(((uint8_t*) kernel.framebuffer.addr) + y * kernel.framebuffer.pitch);
-    location[x] = color;
-}
-
-void draw_char(char ch, uint64_t x_coord, uint64_t y_coord) {
-    uint64_t index = ch * 16;
-    kinfo("%d", index);
-
-    // 16 pixel wide character
-    for(size_t y = 0; y < 16; y++) {
-        // 8 pixel high character
-        for(size_t x = 0; x < 8; x++) {
-            draw_pixel(x_coord + x, y_coord + y, 0xffffff);
+    for(size_t y = 0; y < kernel.framebuffer.height; y++) {
+        for(size_t x = 0; x < kernel.framebuffer.width; x++) {
+            draw_pixel(x, y, BACKGROUND_COLOUR);
         }
     }
 }

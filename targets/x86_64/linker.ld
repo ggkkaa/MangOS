@@ -13,6 +13,9 @@ PHDRS
 SECTIONS
 {
         . = 0xffffffff80000000;
+
+        KERNEL_START = .;
+
         .limine_requests : {
                 KEEP(*(.limine_requests_start))
                 KEEP(*(.limine_requests))
@@ -20,8 +23,6 @@ SECTIONS
         } :limine_requests
 
         . = ALIGN(CONSTANT(MAXPAGESIZE));
-
-        KERNEL_START = .;
 
         section_text_begin = .;
         .text : {
