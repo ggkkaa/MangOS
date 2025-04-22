@@ -47,6 +47,12 @@ void print_char(char ch) {
     }
 }
 
+void print_string(char *ch) {
+    for (size_t i = 0; ch[i] != '\0'; i++) {
+        print_char(ch[i]);
+    }
+}
+
 void init_framebuffer() {
     if(!limine_framebuffer_request.response) {
         kpanic("Error! No framebuffer found!");
@@ -71,4 +77,6 @@ void init_framebuffer() {
             draw_pixel(x, y, BACKGROUND_COLOUR);
         }
     }
+
+
 }

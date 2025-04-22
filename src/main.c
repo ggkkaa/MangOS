@@ -99,12 +99,7 @@ void kernel_main(void* rsp) {
 
     init_framebuffer();
 
-    print_char('M');
-    print_char('a');
-    print_char('n');
-    print_char('g');
-    print_char('O');
-    print_char('S');
+    print_string("MangOS");
 
     halt();
 

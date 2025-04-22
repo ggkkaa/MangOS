@@ -20,3 +20,4 @@ typedef struct
 
 void init_framebuffer();
 void print_char(char ch);
+void print_string(char *ch);
