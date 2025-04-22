@@ -99,7 +99,8 @@ void kernel_main(void* rsp) {
 
     init_framebuffer();
 
-    print_string("MangOS");
+    kinfo("Framebuffer has been initialized");
+    kinfo("Framebuffer is at %p", kernel.framebuffer.addr);
 
     halt();
 
