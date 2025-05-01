@@ -61,16 +61,9 @@ void init_serial() {
 void serial_print_u8(uint8_t c) {
     while ((inb(COM_STATUS) & 0x20) == 0) {}
     outb(COM_PORT, c);
-    if (kernel.framebuffer.addr) {
-        print_char(c);
-    }
 }
 
 void serial_write_str(char* str) {
-    if (kernel.framebuffer.addr) {
-        print_string(str);
-    }
-    
     for (size_t i = 0; 1; i++) {
         char character = (uint8_t) str[i];
 
