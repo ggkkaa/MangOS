@@ -6,6 +6,7 @@
 
 #define page_align_up(p)   (((p) + (PAGE_SIZE-1)) / PAGE_SIZE * PAGE_SIZE)
 #define page_align_down(p) (((p)                ) / PAGE_SIZE * PAGE_SIZE)
+#define round_to_page(size) (((size) + (PAGE_SIZE) - 1) / (PAGE_SIZE))
 
 
 typedef struct
