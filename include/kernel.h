@@ -2,6 +2,7 @@
 #include "x86_64/idt.h"
 #include "memory/linked_list.h"
 #include "memory/page.h"
+#include "memory/slab.h"
 #include "limine/limine.h"
 #include "drivers/framebuffer.h"
 
@@ -30,5 +31,7 @@ typedef struct
     page_t pml4;
     paddr_t phys_addr;
     void* virt_addr;
+    struct list caches;
+    Cache* slab_cache;
 } Kernel;
 extern Kernel kernel;

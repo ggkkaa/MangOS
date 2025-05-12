@@ -30,6 +30,7 @@
 #include "limine/limine.h"
 #include "memory/page.h"
 #include "drivers/framebuffer.h"
+#include "memory/slab.h"
 
 __attribute__((used, section(".limine_requests")))
 static volatile LIMINE_BASE_REVISION(3)
@@ -96,6 +97,13 @@ void kernel_main(void* rsp) {
 
 
     kinfo("We have paging");
+
+    kinfo("Initializing slab allocator.");
+    init_slab_allocator();
+    kinfo("Finished initializing.");
+
+    Cache* test = cache_create(4096, "TEST_CACHE");
+    cache_alloc(test);
 
     init_framebuffer();
 
