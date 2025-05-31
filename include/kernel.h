@@ -5,6 +5,7 @@
 #include "memory/slab.h"
 #include "limine/limine.h"
 #include "drivers/framebuffer.h"
+#include "x86_64/tss.h"
 
 
 #define REGION_USER_STACK_ADDR  0x0000700000000000LL
@@ -23,6 +24,8 @@ typedef struct
     struct mem_list memory_list;
     struct GDTR gdtr;
     struct IDTR idtr;
+        __attribute__((aligned(16)))
+        TSS tss;
     Framebuffer framebuffer;
     Cursor cursor;
     uint64_t available_pages;

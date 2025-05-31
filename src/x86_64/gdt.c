@@ -2,7 +2,7 @@
 #include "print.h"
 #include "kernel.h"
 
-uint64_t GDT[6];
+uint64_t GDT[7];
 
 uint64_t create_gdt_entry(uint64_t base, uint64_t limit, uint64_t access, uint64_t flags) {
     uint64_t base1  = base & 0xFFFF;

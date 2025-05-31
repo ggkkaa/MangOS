@@ -76,6 +76,9 @@ void kernel_main(void* rsp) {
     kinfo("Initializing GDT");
     init_GDT(); 
     kinfo("GDT Initialized");
+    kinfo("Initializing TSS");
+    init_TSS();
+    kinfo("TSS Initialized");
     kinfo("Initializing IDT");
     init_IDT(); 
     kinfo("IDT Initialized"); 
@@ -103,7 +106,9 @@ void kernel_main(void* rsp) {
     kinfo("Finished initializing.");
 
     Cache* test = cache_create(4096, "TEST_CACHE");
-    cache_alloc(test);
+    void* test_page = cache_alloc(test);
+    *(uint32_t*)test_page = 69;
+    kinfo("Allocated a page from the slab cache: %p, value %d", test_page, *(uint32_t*)test_page);
 
     init_framebuffer();
 
