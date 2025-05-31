@@ -70,5 +70,43 @@ int memcmp(const void *pointer1, const void *pointer2, size_t size) {
 void kernel_mempair(memory_pair* mempair) {
         mempair->virtual = (uintptr_t)kernel.virt_addr;
         mempair->physical = (uintptr_t)kernel.phys_addr;
+}
+
+int strcmp(const char *a, const char *b) {
+        size_t i = 0;
+        while (a[i] && b[i]) {
+                if (a[i] != b[i]) return a[i] - b[i];
+                i++;
+        }
+        return a[i] - b[i];
+}
+
+char* strncpy(char* dest, const char* src, size_t n) {
+        size_t i;
+
+        for (i = 0; i < n && src[i] != '\0'; i++) {
+                dest[i] = src[i];
+        }
+
+        for (; i < n; i++) {
+                dest[i] = '\0';
+        }
+
+        return dest;
+}
+
+char* strstr(const char* haystack, const char* needle) {
+    if (!*needle) return (char*)haystack;
+
+    for (; *haystack; haystack++) {
+        const char* h = haystack;
+        const char* n = needle;
+        while (*h && *n && *h == *n) {
+            h++;
+            n++;
+        }
+        if (!*n) return (char*)haystack;
     }
-    
+
+    return NULL;
+}

@@ -22,7 +22,10 @@ void *memcpy(void *dest, const void *src, size_t size);
 void *memset(void *pointer, int val, size_t size);
 void *memmove(void *dest, const void *src, size_t size);
 int memcmp(const void *pointer1, const void *pointer2, size_t size);
-void kernel_mempair(memory_pair* mempair);    
+int strcmp(const char *a, const char *b);
+char* strncpy(char* dest, const char* src, size_t n);
+char* strstr(const char* haystack, const char* needle);
+void kernel_mempair(memory_pair* mempair);
 
 #define disable_interrupts() asm volatile("cli")
 #define wait_for_interrupt() asm volatile("hlt")
