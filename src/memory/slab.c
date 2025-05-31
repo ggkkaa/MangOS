@@ -13,7 +13,7 @@ size_t calculate_slab_size(Cache *cache) {
 
 intptr_t cache_grow(Cache *cache) {
     void *mem = kernel_malloc(calculate_slab_size(cache));
-    kinfo("Allocating slab of size: %zu", calculate_slab_size(cache));
+    kinfo("Allocating slab of size: %d", calculate_slab_size(cache));
 
     if (!mem) {
         kerror("Memory initialization failed!!!");
@@ -31,20 +31,38 @@ intptr_t cache_grow(Cache *cache) {
     for (size_t i = 0; i < cache->objects_per_slab; i++) {
         slab_bufctl(slab)[i] = i;
     }
+        kinfo("Slab memory address: %p", slab->mem);
+        kinfo("Slab address: %p", slab);
+        list_append(&slab->list, &cache->empty);
 
-    list_append((struct list*)slab, &cache->empty);
+        uint8_t* s = (uint8_t*)slab;
+        kinfo("slab %p raw dump:", slab);
+        for (int i = 0; i < 128; i += 8) {
+        kinfo(" +%x: %x %x %x %x %x %x %x %x", i,
+                s[i], s[i+1], s[i+2], s[i+3],
+                s[i+4], s[i+5], s[i+6], s[i+7]);
+        }
+
     return 0;
 }
 
 Slab *cache_select(Cache *cache) {
     assert(cache);
     kinfo("cache select");
-    Slab *slab = NULL;
-
-    if((slab = (Slab*)list_next(&cache->partial))) return slab;
-    if((slab = (Slab*)list_next(&cache->empty))) return slab;
+        Slab *slab = list_first_entry_or_null(&cache->partial, Slab, list);
+        if (slab)
+                return slab;
+        
+        slab = list_first_entry_or_null(&cache->empty, Slab, list);
+        if (slab)
+                return slab;
+        
     if(cache_grow(cache) != 0) return NULL;
-    slab = (Slab*)list_next(&cache->empty);
+
+    slab = list_first_entry_or_null(&cache->empty, Slab, list);
+
+    kinfo("Selected slab: %p", slab);
+    kinfo("Slab memory address: %p", slab->mem);
 
     return slab;
 }

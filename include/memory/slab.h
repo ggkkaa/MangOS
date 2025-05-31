@@ -32,7 +32,7 @@ typedef struct Slab
     size_t free;
 } Slab;
 
-#define slab_bufctl(slab) ((uint32_t *)(slab)+1)
+#define slab_bufctl(slab) ((uint32_t *)((uint8_t *)(slab) + sizeof(Slab)))
 
 void init_cache(Cache* cache, size_t obj_size);
 Cache* cache_create(size_t obj_size, const char* name);
