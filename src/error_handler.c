@@ -28,8 +28,8 @@ static void unwind_stack(IDTError* error) {
 
 void error_handler(IDTError* error) {
     if(error->type == 14) {
-        kerror("ERROR PAGE FAULT AT [%p]", error->cr2);
-        switch (error->code)
+        kerror("ERROR PAGE FAULT AT [%p]. Error code: %x", error->cr2, error->code);
+        /*switch (error->code)
         {
         case 0:
             kerror("Page not present");
@@ -46,7 +46,7 @@ void error_handler(IDTError* error) {
         default: 
             kerror("Unknown error");
             break;
-        }
+        }*/
 
     }
     kerror("Register dump: cr2: %x, r15: %x, r14: %x, r13: %x, r12: %x, r11: %x, r10: %x, r9: %x, r8: %x, rbp: %x, rdi: %x, rsi: %x, rdx: %x, rcx: %x, rbx: %x, rax: %x",
