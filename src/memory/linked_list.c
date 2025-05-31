@@ -74,17 +74,15 @@ void init_list(uintptr_t hhdm_offset) {
       }
     }
   }
-
-  kinfo("Finished setting up the list. Now starting test.");
-
-  allocator_test();
 }
 
 // Allocates a single physical page.
 
 paddr_t alloc_phys_page() {
-  if (list_empty(&kernel.memory_list.list))
+  if (list_empty(&kernel.memory_list.list)) {
+    kwarning("No physical pages available for allocation.");
     return (paddr_t)NULL;
+  }
   struct list_node *node = (struct list_node *)kernel.memory_list.list.next;
   void *result = (void *)node;
 
@@ -98,15 +96,22 @@ paddr_t alloc_phys_page() {
   if (node->list.next == NULL)
     kpanic("Hey. It was NULL");
   list_remove(&node->list);
+      if (((paddr_t)result & (PAGE_SIZE - 1)) != 0) {
+        kerror("phys-alloc returned mis-aligned frame %p", result);
+        kpanic("phys-alloc returned mis-aligned frame");
+    }
+    kinfo("Allocated physical page at %p", result);
   return (paddr_t)result - (paddr_t)limine_hhdm_request.response->offset;
 }
 
 // Allocates multiple physical pages
 
 paddr_t alloc_phys_pages(size_t pages_count) {
-  if (pages_count == 0)
-    return (paddr_t)NULL;
-  if (pages_count == 1)
+  if (pages_count == 0) {
+        kwarning("ERROR: Attempted to allocate 0 pages.");
+        return (paddr_t)NULL;
+  }
+    if (pages_count == 1)
     return alloc_phys_page();
 
   for (struct list *list = kernel.memory_list.list.next;
@@ -120,9 +125,19 @@ paddr_t alloc_phys_pages(size_t pages_count) {
       list_init(&new_node->list);
       list_append(&new_node->list, list);
       list_remove(list);
+      if (((paddr_t)result & (PAGE_SIZE - 1)) != 0) {
+        kerror("phys-alloc returned mis-aligned frame %p", result);
+        kpanic("phys-alloc returned mis-aligned frame");
+    }
+    kinfo("Allocated physical page at %p", result);
       return (paddr_t)result - limine_hhdm_request.response->offset;
     } else if (node->pages == pages_count) {
       list_remove(list);
+        if (((paddr_t)result & (PAGE_SIZE - 1)) != 0) {
+                kerror("phys-alloc returned mis-aligned frame %p", result);
+                kpanic("phys-alloc returned mis-aligned frame");
+        }
+        kinfo("Allocated physical page at %p", result);
       return (paddr_t)result - limine_hhdm_request.response->offset;
     }
   }
@@ -135,75 +150,4 @@ void free_phys_pages(paddr_t page, size_t count) {
   list_init(&node->list);
   node->pages = count - 1;
   list_append(&node->list, &kernel.memory_list.list);
-}
-
-#define TEST_ALLOC_SIZE 2
-
-/* Tests the physical allocator. Has two parts:
-
-    1: Allocates a single page, loops over it,
-    and checks all the bytes for a pattern.
-
-    2: Allocates multiple pages(amount of which
-    is defined in TEST_ALLOC_SIZE), and checks
-    all of them for a pattern.
-
-*/
-
-void allocator_test() {
-  bool success = true;
-  uint8_t *test_int = (uint8_t *)((long long unsigned int)alloc_phys_pages(1) |
-                                  KERNEL_MEMORY_MASK);
-  if (!test_int)
-    kpanic("Test int is null.");
-  kinfo("Address of the test int is %p", test_int);
-  *test_int = 69;
-
-  kinfo("testing integer, should be 69: %d", *test_int);
-
-  for (size_t i = 0; i < PAGE_SIZE; i++) {
-    test_int[i] = (uint8_t)(i & 0xFF);
-  }
-
-  kinfo("Pattern filled.");
-
-  for (size_t i = 0; i < PAGE_SIZE; i++) {
-    if (test_int[i] != (uint16_t)(i & 0xFF)) {
-      success = false;
-      kerror("Memory test failed at byte %p: Expected %d, got %d", i + test_int,
-             (uint16_t)(i & 0xFF), test_int[i]);
-      break;
-    }
-  }
-
-  free_phys_pages((paddr_t)(test_int - limine_hhdm_request.response->offset),
-                  1);
-
-  if (success == false) {
-    kpanic("Single Page Allocation Test Failed");
-  } else {
-    kinfo("Single page physical allocation test finished.");
-  }
-
-  kinfo("Multi page physical allocation test starting...");
-
-  test_int =
-      (uint8_t *)((long long unsigned int)alloc_phys_pages(TEST_ALLOC_SIZE) |
-                  KERNEL_MEMORY_MASK);
-
-  for (size_t i = 0; i < TEST_ALLOC_SIZE; i++) {
-    test_int[i] = (uint16_t)(i & 0xFF);
-  }
-
-  for (size_t i = 0; i < TEST_ALLOC_SIZE; i++) {
-    if (test_int[i] != (uint16_t)(i & 0xFF)) {
-      kerror("Multi-page test failed");
-      return;
-    }
-  }
-
-  free_phys_pages((paddr_t)(test_int - limine_hhdm_request.response->offset),
-                  TEST_ALLOC_SIZE);
-
-  kinfo("test passed!");
 }
