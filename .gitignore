@@ -9,3 +9,4 @@ obj/
 build/
 build/*
 targets/x86_64/iso/boot/mangOS
+.VSCodeCounter/
