@@ -53,6 +53,10 @@
 
 This is a simple OS made by myself to train my C skills.
 
+### Thanks to
+
+- [@Dcraft](https://github.com/Dcraftbg) - helping me when I didn't understand specific concepts
+
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 <!-- GETTING STARTED -->
@@ -84,6 +88,7 @@ sudo apt install build-essential nasm xorriso qemu qemu-system-x86
 - Linux/MacOS:
 
 Linux has a build script made specifically for it, to build.
+
 ```sh
 chmod +x ./build,sh
 ./build.sh
@@ -98,7 +103,6 @@ docker run --rm -it -v "%cd%":/root/env mangos-buildenv
 
 make iso
 ```
-
 
 - Windows(Powershell):
 
@@ -147,10 +151,11 @@ TASKS TO DO
 - [x] - Exception handling (i.e. just make an exception handler that prints when errors occur)
 - [x] - Basic Log
 - [x] - Make a Physical Allocator
-- [ ] - Make a page allocator (Bitmap, Page list, whichever one you feel like)
-- [ ] - Implement paging using the allocator
-- [ ] - Load the new page table
-- [ ] -  TSS
+- [x] - Make a page allocator (Bitmap, Page list, whichever one you feel like)
+- [x] - Implement paging using the allocator
+- [x] - Load the new page table
+- [x] - TSS
+- [ ] - VFS and tmpfs
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
