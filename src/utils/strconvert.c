@@ -125,18 +125,17 @@ char* ptr_to_str(void* ptr) {
 
 char* hex_to_str(uint64_t num) {
     static char buffer[20]; 
-    unsigned long long addr = (unsigned long long)num;
     const char hex_digits[] = "0123456789ABCDEF";
 
-    buffer[0] = '0';  // Prefix for hexadecimal
-    buffer[1] = 'x';  // Prefix for hexadecimal
+    buffer[0] = '0';
+    buffer[1] = 'x';
 
-    // Convert each the pointer to hex
-    for (int i = (sizeof(addr) * 2) - 1; i >= 0; --i) {
-        buffer[2 + i] = hex_digits[num & 0xF];
-        addr >>= 4;                            
+    for (int i = 0; i < 16; i++) {
+        buffer[2 + 15 - i] = hex_digits[num & 0xF];
+        num >>= 4;
     }
-    buffer[2 + (sizeof(addr) * 2)] = '\0'; 
+
+    buffer[18] = '\0';
     return buffer;
 }
 

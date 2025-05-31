@@ -89,6 +89,9 @@ void k_serial_printf(const char* string, ...) {
             case 's':
                 serial_write_str(va_arg(args, char*));
                 break;
+                case 'x':
+                        serial_write_str(hex_to_str(va_arg(args, uint64_t)));
+                        break;
             case 'p':
                 serial_write_str(ptr_to_str(va_arg(args, void*)));
                 break;
