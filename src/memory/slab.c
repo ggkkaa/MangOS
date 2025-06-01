@@ -34,16 +34,7 @@ intptr_t cache_grow(Cache *cache) {
         kinfo("Slab memory address: %p", slab->mem);
         kinfo("Slab address: %p", slab);
         list_append(&slab->list, &cache->empty);
-
-        uint8_t* s = (uint8_t*)slab;
-        kinfo("slab %p raw dump:", slab);
-        for (int i = 0; i < 128; i += 8) {
-        kinfo(" +%x: %x %x %x %x %x %x %x %x", i,
-                s[i], s[i+1], s[i+2], s[i+3],
-                s[i+4], s[i+5], s[i+6], s[i+7]);
-        }
-
-    return 0;
+        return 0;
 }
 
 Slab *cache_select(Cache *cache) {
