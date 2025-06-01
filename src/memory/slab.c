@@ -39,7 +39,6 @@ intptr_t cache_grow(Cache *cache) {
 
 Slab *cache_select(Cache *cache) {
     assert(cache);
-    kinfo("cache select");
         Slab *slab = list_first_entry_or_null(&cache->partial, Slab, list);
         if (slab)
                 return slab;
@@ -52,9 +51,6 @@ Slab *cache_select(Cache *cache) {
 
     slab = list_first_entry_or_null(&cache->empty, Slab, list);
 
-    kinfo("Selected slab: %p", slab);
-    kinfo("Slab memory address: %p", slab->mem);
-
     return slab;
 }
 
@@ -62,7 +58,6 @@ void *cache_alloc(Cache *cache) {
     assert(cache);
     Slab *slab = cache_select(cache);
     if(!slab) return NULL;
-    kinfo("Slab memory address: %p", slab->mem);
 
     size_t index = slab_bufctl(slab)[slab->free];
     if (index >= cache->objects_per_slab) {

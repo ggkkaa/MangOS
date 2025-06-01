@@ -100,7 +100,6 @@ paddr_t alloc_phys_page() {
         kerror("phys-alloc returned mis-aligned frame %p", result);
         kpanic("phys-alloc returned mis-aligned frame");
     }
-    kinfo("Allocated physical page at %p", result);
   return (paddr_t)result - (paddr_t)limine_hhdm_request.response->offset;
 }
 
@@ -137,7 +136,6 @@ paddr_t alloc_phys_pages(size_t pages_count) {
                 kerror("phys-alloc returned mis-aligned frame %p", result);
                 kpanic("phys-alloc returned mis-aligned frame");
         }
-        kinfo("Allocated physical page at %p", result);
       return (paddr_t)result - limine_hhdm_request.response->offset;
     }
   }
