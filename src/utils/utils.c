@@ -3,6 +3,11 @@
 #include "limine/limine.h"
 #include "kassert.h"
 
+static volatile struct limine_executable_file_request limine_executable_file_request = {
+    .id = LIMINE_EXECUTABLE_FILE_REQUEST,
+    .revision = 0,
+};
+
 void enable_interrupts() {
     asm volatile("sti");
 }
@@ -109,4 +114,17 @@ char* strstr(const char* haystack, const char* needle) {
     }
 
     return NULL;
+}
+
+char* strchr(const char* str, int chr) {
+        while (str[0] && str[0] != (char)chr)
+        {
+                str++;
+        }
+        return (char*)str;
+}
+
+char* get_kernel_cmdline() {
+        if(!limine_executable_file_request.response || !limine_executable_file_request.response->executable_file) return NULL;
+        return limine_executable_file_request.response->executable_file->string;
 }

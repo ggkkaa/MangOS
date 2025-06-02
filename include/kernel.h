@@ -6,6 +6,7 @@
 #include "limine/limine.h"
 #include "drivers/framebuffer.h"
 #include "x86_64/tss.h"
+#include "drivers/fs/vfs.h"
 
 
 #define REGION_USER_STACK_ADDR  0x0000700000000000LL
@@ -36,5 +37,7 @@ typedef struct
     void* virt_addr;
     struct list caches;
     Cache* slab_cache;
+    Cache* inode_cache;
+    Superblock root_block;
 } Kernel;
 extern Kernel kernel;

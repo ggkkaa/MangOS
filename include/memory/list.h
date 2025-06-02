@@ -72,7 +72,5 @@ static size_t list_len(struct list *list) {
         struct list *pos__  = head__->next;                                \
         type *__ret = pos__ != head__ ? list_entry(pos__, type, member)    \
                                       : NULL;                              \
-        kinfo("list_first_entry_or_null(%p) -> %p",                        \
-              (void *)head__, (void *)__ret);                              \
         __ret;                                                             \
 })

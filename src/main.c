@@ -31,6 +31,7 @@
 #include "memory/page.h"
 #include "drivers/framebuffer.h"
 #include "memory/slab.h"
+#include "drivers/fs/vfs.h"
 
 __attribute__((used, section(".limine_requests")))
 static volatile LIMINE_BASE_REVISION(3)
@@ -112,9 +113,77 @@ void kernel_main(void* rsp) {
 
     init_framebuffer();
 
-    kinfo("Framebuffer has been initialized");
-    kinfo("Framebuffer is at %p", kernel.framebuffer.addr);
+        kinfo("Framebuffer has been initialized");
+        kinfo("Framebuffer is at %p", kernel.framebuffer.addr);
+        
+        kinfo("Initiating VFS");
+        init_vfs();
+        kinfo("VFS Initialized");
 
-    halt();
+        Inode* path = NULL;
+        intptr_t result;
 
+        result = vfs_find_abs("root:/home/", &path);
+        if (result < 0) {
+        kinfo("Path doesn't exist (This is good, because we didn't create it yet)");
+        }
+
+        result = vfs_find_abs("root:/", &path);
+        if (result < 0) {
+                kwarning("Root does not exist. My find function doesn't work :(");
+        halt();
+        } else {
+                kinfo("Root has been found. My function works!!!");
+        }
+
+        kinfo("Creating home...");
+        vfs_create_abs("root:/home", INODE_DIR);
+
+        kinfo("Directory creation test.");
+        result = vfs_find_abs("root:/home", &path);
+        if (result < 0) {
+                kwarning("Path doesn't exist even though we just created it!!!");
+        halt();
+        } else {
+                kinfo("Found root:/home/. Folder creation works!!!");
+        }
+
+        vfs_create_abs("root:/home/lol.txt", INODE_FILE);
+
+        Inode* inode = NULL;
+        result = vfs_find_abs("root:/home/lol.txt", &inode);
+        if (result < 0) {
+                kwarning("File not found: root:/home/lol.txt");
+                halt();
+        }
+
+        const char* str = "I CAN FINALLY MAKE FILES YAY";
+        const void* ptr = (const void*)str;
+        size_t size = 29;
+
+        inode_write(inode, ptr, size, 0);
+
+        char lol[29];
+        inode_read(inode, lol, 29, 0);
+
+        kinfo("%s", lol);
+
+        DirEntry direntry[5];
+
+        vfs_create_abs("root:/test", INODE_DIR);
+        vfs_create_abs("root:/test2", INODE_DIR);
+        vfs_create_abs("root:/test3", INODE_DIR);
+        vfs_create_abs("root:/test4", INODE_DIR);
+
+        vfs_find_abs("root:/", &inode);
+
+        inode_get_dir_entries(inode, direntry, 5);
+
+        for (size_t i = 0; i < 5; i++)
+        {
+                kinfo("%s", direntry[i].name);
+        }
+        
+
+        halt();
 }

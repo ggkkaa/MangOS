@@ -25,7 +25,10 @@ int memcmp(const void *pointer1, const void *pointer2, size_t size);
 int strcmp(const char *a, const char *b);
 char* strncpy(char* dest, const char* src, size_t n);
 char* strstr(const char* haystack, const char* needle);
+char* strchr(const char* str, int chr);
 void kernel_mempair(memory_pair* mempair);
+
+char* get_kernel_cmdline();
 
 #define disable_interrupts() asm volatile("cli")
 #define wait_for_interrupt() asm volatile("hlt")
